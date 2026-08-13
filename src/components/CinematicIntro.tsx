@@ -235,15 +235,14 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
                 style={{ left: `${playheadPos}%` }}
               />
 
-              {(phase === 'extract_it' || phase === 'review_it' || phase === 'keep_it') && (
-                <div className="absolute top-[-16px] left-0 right-0 flex justify-between px-2 text-[9px] font-mono text-[--text-tertiary]">
-                  <span>001</span>
-                  <span>002</span>
-                  <span>003</span>
-                  <span>004</span>
-                  <span>005</span>
-                </div>
-              )}
+              {/* Monospace Frame Sequence Numbers — Visible from initial phase */}
+              <div className="absolute top-[-16px] left-0 right-0 flex justify-between px-2 text-[9px] font-mono transition-opacity duration-300">
+                <span className={playheadPos >= 10 && playheadPos < 25 ? 'text-[--accent-blue] font-bold' : 'text-[--text-tertiary]'}>001</span>
+                <span className={playheadPos >= 25 && playheadPos < 45 ? 'text-[--accent-blue] font-bold' : 'text-[--text-tertiary]'}>002</span>
+                <span className={playheadPos >= 45 && playheadPos < 65 ? 'text-[--accent-blue] font-bold' : 'text-[--text-tertiary]'}>003</span>
+                <span className={playheadPos >= 65 && playheadPos < 85 ? 'text-[--accent-blue] font-bold' : 'text-[--text-tertiary]'}>004</span>
+                <span className={playheadPos >= 85 ? 'text-[--accent-blue] font-bold' : 'text-[--text-tertiary]'}>005</span>
+              </div>
             </div>
           ) : (
             /* IDENTICAL MATCH TO HOMEPAGE DROPZONE BOX */
