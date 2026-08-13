@@ -42,8 +42,8 @@ export const Dropzone: React.FC<DropzoneProps> = ({
 
   return (
     <div className="w-full max-w-lg mx-auto flex flex-col items-center justify-center text-center my-auto">
-      {/* Centered Heading with Generous Breathing Space */}
-      <div className="mb-14 sm:mb-16">
+      {/* Centered Heading Block — Fixed Height & Locked Vertical Position */}
+      <div className="mb-14 sm:mb-16 min-h-[76px] flex flex-col items-center justify-center">
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[--text-primary] mb-3 font-sans">
           Precision Frame Extraction
         </h1>

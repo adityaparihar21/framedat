@@ -1,6 +1,6 @@
 /**
  * Apple & Google Gemini style refined audio engine for framedat intro.
- * Features ultra-subtle haptic micro-taps and soft warm ambient harmonics.
+ * Features crisp audible haptic taps, clear bell chimes, and near-zero riser sound.
  */
 
 class IntroSoundEngine {
@@ -14,7 +14,7 @@ class IntroSoundEngine {
       if (AudioCtx) {
         this.ctx = new AudioCtx();
         this.masterGain = this.ctx.createGain();
-        this.masterGain.gain.value = 0.25; // Subtle master volume level
+        this.masterGain.gain.value = 0.45; // Clear master volume level
         this.masterGain.connect(this.ctx.destination);
       }
     }
@@ -26,7 +26,7 @@ class IntroSoundEngine {
   public setMuted(muted: boolean) {
     this.isMuted = muted;
     if (this.masterGain && this.ctx) {
-      this.masterGain.gain.setValueAtTime(muted ? 0 : 0.25, this.ctx.currentTime);
+      this.masterGain.gain.setValueAtTime(muted ? 0 : 0.45, this.ctx.currentTime);
     }
   }
 
@@ -35,7 +35,7 @@ class IntroSoundEngine {
   }
 
   /**
-   * Soft warm ambient harmonic pad (Apple Keynote / Google Gemini style)
+   * Ultra-subtle background ambient pad
    */
   public playWarmAmbientPad(durationSec: number = 7.0) {
     if (this.isMuted) return;
@@ -51,15 +51,15 @@ class IntroSoundEngine {
 
       osc1.type = 'sine';
       osc2.type = 'sine';
-      osc1.frequency.setValueAtTime(130.81, now); // C3 (warm chord)
-      osc2.frequency.setValueAtTime(196.00, now); // G3
+      osc1.frequency.setValueAtTime(130.81, now);
+      osc2.frequency.setValueAtTime(196.00, now);
 
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(280, now);
+      filter.frequency.setValueAtTime(220, now);
 
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.04, now + 1.2);
-      gain.gain.linearRampToValueAtTime(0.03, now + durationSec - 1.2);
+      gain.gain.linearRampToValueAtTime(0.02, now + 1.2);
+      gain.gain.linearRampToValueAtTime(0.015, now + durationSec - 1.2);
       gain.gain.exponentialRampToValueAtTime(0.001, now + durationSec);
 
       osc1.connect(filter);
@@ -75,7 +75,7 @@ class IntroSoundEngine {
   }
 
   /**
-   * Apple Taptic Engine / macOS style micro-click haptic tap
+   * Crisp, loud & clear Apple Taptic style haptic click/tap
    */
   public playHapticTap() {
     if (this.isMuted) return;
@@ -87,23 +87,23 @@ class IntroSoundEngine {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(1800, now);
-      osc.frequency.exponentialRampToValueAtTime(400, now + 0.008);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1600, now);
+      osc.frequency.exponentialRampToValueAtTime(300, now + 0.015);
 
-      gain.gain.setValueAtTime(0.05, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.008);
+      gain.gain.setValueAtTime(0.22, now); // Clear, crisp volume
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.015);
 
       osc.connect(gain);
       gain.connect(this.masterGain);
 
       osc.start(now);
-      osc.stop(now + 0.008);
+      osc.stop(now + 0.015);
     } catch {}
   }
 
   /**
-   * Refined glass bell chime for title reveal (Apple product intro style)
+   * Clear, audible Apple/Gemini style bell chime for phrase & title reveals
    */
   public playSubtleChime() {
     if (this.isMuted) return;
@@ -117,23 +117,23 @@ class IntroSoundEngine {
         const gain = this.ctx!.createGain();
 
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, now + i * 0.06);
+        osc.frequency.setValueAtTime(freq, now + i * 0.07);
 
-        gain.gain.setValueAtTime(0.001, now + i * 0.06);
-        gain.gain.linearRampToValueAtTime(0.04, now + i * 0.06 + 0.04);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.8);
+        gain.gain.setValueAtTime(0.001, now + i * 0.07);
+        gain.gain.linearRampToValueAtTime(0.18, now + i * 0.07 + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.9);
 
         osc.connect(gain);
         gain.connect(this.masterGain!);
 
-        osc.start(now + i * 0.06);
-        osc.stop(now + i * 0.06 + 0.8);
+        osc.start(now + i * 0.07);
+        osc.stop(now + i * 0.07 + 0.9);
       });
     } catch {}
   }
 
   /**
-   * Soft organic transition swell (No harsh risers or noise)
+   * Near-zero riser volume (extremely quiet background transition)
    */
   public playSoftTransitionSwell() {
     if (this.isMuted) return;
@@ -147,22 +147,22 @@ class IntroSoundEngine {
       const filter = this.ctx.createBiquadFilter();
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(150, now);
-      osc.frequency.exponentialRampToValueAtTime(260, now + 0.5);
+      osc.frequency.setValueAtTime(100, now);
+      osc.frequency.exponentialRampToValueAtTime(160, now + 0.4);
 
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(300, now);
+      filter.frequency.setValueAtTime(200, now);
 
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.03, now + 0.2);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      gain.gain.linearRampToValueAtTime(0.008, now + 0.2); // Extremely quiet
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
 
       osc.connect(filter);
       filter.connect(gain);
       gain.connect(this.masterGain);
 
       osc.start(now);
-      osc.stop(now + 0.5);
+      osc.stop(now + 0.4);
     } catch {}
   }
 

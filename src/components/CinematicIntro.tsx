@@ -162,43 +162,43 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
         </button>
       </div>
 
-      {/* Main Motion Composition Center */}
+      {/* Main Motion Composition Center — EXACT 1:1 GEOMETRIC MATCH TO HOMEPAGE */}
       <div className="w-full max-w-lg mx-auto flex flex-col items-center justify-center text-center my-auto px-4">
         
-        {/* HEADING BLOCK — MATCHED TO HOMEPAGE DROPZONE */}
-        <div className="mb-14 sm:mb-16 min-h-[72px] flex flex-col items-center justify-center">
+        {/* HEADING BLOCK — FIXED min-h-[76px] & mb-14 sm:mb-16 TO PREVENT ANY SHIFTING */}
+        <div className="mb-14 sm:mb-16 min-h-[76px] flex flex-col items-center justify-center">
           {phase === 'every_moment' && (
-            <div className="text-2xl sm:text-4xl font-extrabold text-[--text-primary] tracking-tight animate-horizontal-reveal font-sans">
+            <div className="text-2xl sm:text-4xl font-extrabold text-[--text-primary] tracking-tight animate-horizontal-reveal font-sans my-auto">
               Every moment...
             </div>
           )}
 
           {phase === 'has_a_frame' && (
-            <div className="text-2xl sm:text-4xl font-extrabold text-[--text-primary] tracking-tight animate-slide-fade font-sans">
+            <div className="text-2xl sm:text-4xl font-extrabold text-[--text-primary] tracking-tight animate-slide-fade font-sans my-auto">
               has a frame.
             </div>
           )}
 
           {phase === 'find_it' && (
-            <div className="text-2xl sm:text-4xl font-extrabold text-[--text-primary] tracking-tight animate-slide-fade font-sans">
+            <div className="text-2xl sm:text-4xl font-extrabold text-[--text-primary] tracking-tight animate-slide-fade font-sans my-auto">
               Find it.
             </div>
           )}
 
           {phase === 'extract_it' && (
-            <div className="text-2xl sm:text-4xl font-extrabold text-[--accent-blue] tracking-tight animate-slide-fade font-mono">
+            <div className="text-2xl sm:text-4xl font-extrabold text-[--accent-blue] tracking-tight animate-slide-fade font-mono my-auto">
               [EX] [TR] [AC] [T] [IT]
             </div>
           )}
 
           {phase === 'review_it' && (
-            <div className="text-2xl sm:text-4xl font-extrabold text-[--text-primary] tracking-tight animate-slide-fade font-sans">
+            <div className="text-2xl sm:text-4xl font-extrabold text-[--text-primary] tracking-tight animate-slide-fade font-sans my-auto">
               Review it.
             </div>
           )}
 
           {phase === 'keep_it' && (
-            <div className="text-2xl sm:text-4xl font-extrabold text-[--text-primary] tracking-tight animate-slide-fade font-sans">
+            <div className="text-2xl sm:text-4xl font-extrabold text-[--text-primary] tracking-tight animate-slide-fade font-sans my-auto">
               Keep it.
             </div>
           )}
