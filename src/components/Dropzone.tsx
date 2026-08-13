@@ -42,17 +42,17 @@ export const Dropzone: React.FC<DropzoneProps> = ({
 
   return (
     <div className="w-full max-w-lg mx-auto flex flex-col items-center justify-center text-center my-auto">
-      {/* Centered Heading */}
-      <div className="mb-8">
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[--text-primary] mb-2 font-sans">
+      {/* Centered Heading with Generous Breathing Space */}
+      <div className="mb-14 sm:mb-16">
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[--text-primary] mb-3 font-sans">
           Precision Frame Extraction
         </h1>
-        <p className="text-sm text-[--text-secondary] max-w-sm mx-auto font-normal">
+        <p className="text-sm text-[--text-secondary] max-w-sm mx-auto font-normal leading-relaxed">
           Extract exact video frames locally at native resolution.
         </p>
       </div>
 
-      {/* Main Upload Focal Box — 460px Perfectly Centered */}
+      {/* Main Upload Focal Box — 460px Positioned Slightly Lower with Generous Gap */}
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -95,7 +95,7 @@ export const Dropzone: React.FC<DropzoneProps> = ({
       </div>
 
       {/* Clean Format Label */}
-      <div className="mt-5 text-center">
+      <div className="mt-6 text-center">
         <span className="text-xs font-mono text-[--text-tertiary]">
           MP4 · MOV · WebM · AVI · MKV &nbsp;•&nbsp; Up to 8K
         </span>

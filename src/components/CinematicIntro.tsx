@@ -103,7 +103,7 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
       {/* Main Motion Composition Center */}
       <div className="relative w-full max-w-xl mx-auto px-6 flex flex-col items-center justify-center text-center">
         {/* PHASE 1 & 2: TEXT PHRASES */}
-        <div className="h-20 flex items-center justify-center mb-8 relative overflow-hidden">
+        <div className="h-20 flex items-center justify-center mb-14 relative overflow-hidden">
           {phase === 'every_moment' && (
             <div className="text-2xl sm:text-4xl font-extrabold text-[--text-primary] tracking-tight animate-horizontal-reveal">
               Every moment...
