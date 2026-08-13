@@ -1,7 +1,7 @@
 import React from 'react';
 import { SlidersHorizontal, Settings, Film, RefreshCw } from 'lucide-react';
 
-export type AppToolMode = 'extractor' | 'audio_cleaner' | 'bitmap_ascii' | 'assets' | 'settings';
+export type AppToolMode = 'extractor' | 'audio_cleaner' | 'image_studio';
 
 interface HeaderProps {
   theme: 'dark' | 'light';
@@ -25,21 +25,21 @@ export const Header: React.FC<HeaderProps> = ({
   hasVideo,
 }) => {
   return (
-    <header className="border-b border-[--border-subtle] bg-[#08090C]/90 backdrop-blur-md px-4 sm:px-8 py-3.5 transition-colors select-none sticky top-0 z-50">
-      <div className="max-w-[1200px] mx-auto flex items-center justify-between">
-        {/* Left: Brand Logo & Navigation */}
-        <div className="flex items-center gap-8 sm:gap-10">
+    <header className="border-b border-[--border-subtle] bg-[#08090C]/90 backdrop-blur-md px-6 sm:px-10 py-4 transition-colors select-none sticky top-0 z-50">
+      <div className="max-w-[1280px] mx-auto flex items-center justify-between">
+        {/* Left: Brand Logo & 3 Main Studio Navigation Links */}
+        <div className="flex items-center gap-10 sm:gap-12">
           <div className="flex items-center gap-2 cursor-pointer group" onClick={onReset}>
-            <span className="font-extrabold text-lg sm:text-xl tracking-tight text-[--text-primary] font-sans group-hover:text-[--accent-blue] transition-colors">
+            <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-[--text-primary] font-sans group-hover:text-[--accent-blue] transition-colors">
               framedat
             </span>
-            <span className="font-mono text-[10px] text-[--text-tertiary] bg-[--bg-surface-2] px-1.5 py-0.5 rounded border border-[--border-subtle] hidden sm:inline">
+            <span className="font-mono text-[10px] text-[--text-tertiary] bg-[--bg-surface-2] px-2 py-0.5 rounded border border-[--border-subtle] hidden sm:inline">
               v1.0
             </span>
           </div>
 
           {/* Understated Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-7 font-sans text-xs">
+          <nav className="hidden md:flex items-center gap-8 font-sans text-xs">
             <button
               onClick={() => onChangeToolMode('extractor')}
               className={`py-1 transition-all relative ${
@@ -61,42 +61,22 @@ export const Header: React.FC<HeaderProps> = ({
               Audio Cleaner
             </button>
             <button
-              onClick={() => onChangeToolMode('bitmap_ascii')}
+              onClick={() => onChangeToolMode('image_studio')}
               className={`py-1 transition-all relative ${
-                toolMode === 'bitmap_ascii'
+                toolMode === 'image_studio'
                   ? 'text-[--text-primary] font-semibold border-b-2 border-[--accent-blue]'
                   : 'text-[--text-secondary] hover:text-[--text-primary]'
               }`}
             >
-              Bitmap & ASCII
-            </button>
-            <button
-              onClick={() => onChangeToolMode('assets')}
-              className={`py-1 transition-all relative ${
-                toolMode === 'assets'
-                  ? 'text-[--text-primary] font-semibold border-b-2 border-[--accent-blue]'
-                  : 'text-[--text-secondary] hover:text-[--text-primary]'
-              }`}
-            >
-              Assets
-            </button>
-            <button
-              onClick={() => onChangeToolMode('settings')}
-              className={`py-1 transition-all relative ${
-                toolMode === 'settings'
-                  ? 'text-[--text-primary] font-semibold border-b-2 border-[--accent-blue]'
-                  : 'text-[--text-secondary] hover:text-[--text-primary]'
-              }`}
-            >
-              Settings
+              Image Studio
             </button>
           </nav>
         </div>
 
         {/* Right Controls */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-4 sm:gap-5">
           <div
-            className="hidden sm:flex items-center gap-2 text-xs text-[--text-secondary] font-sans relative group cursor-help px-2 py-1 rounded hover:bg-[--bg-surface-2] transition-colors"
+            className="hidden sm:flex items-center gap-2 text-xs text-[--text-secondary] font-sans relative group cursor-help px-2.5 py-1 rounded hover:bg-[--bg-surface-2] transition-colors"
             title="Your files stay on your device. Zero cloud uploads."
           >
             <span className="relative flex h-2 w-2">
@@ -109,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
           {!hasVideo && onReplayIntro && toolMode === 'extractor' && (
             <button
               onClick={onReplayIntro}
-              className="btn btn-ghost text-xs py-1 px-2.5 hidden sm:flex items-center gap-1.5 text-[--text-secondary]"
+              className="btn btn-ghost text-xs py-1.5 px-3 hidden sm:flex items-center gap-1.5 text-[--text-secondary]"
               title="Replay intro animation"
             >
               <Film className="w-3.5 h-3.5 text-[--accent-blue]" />
@@ -120,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({
           {hasVideo && (
             <button
               onClick={onReset}
-              className="btn btn-secondary text-xs py-1 px-2.5 hidden sm:flex items-center gap-1.5"
+              className="btn btn-secondary text-xs py-1.5 px-3 hidden sm:flex items-center gap-1.5"
               title="Open another video file"
             >
               <RefreshCw className="w-3.5 h-3.5 text-[--text-secondary]" />

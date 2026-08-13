@@ -1,12 +1,13 @@
 /**
  * Client-Side Canvas Engine for Bitmap Dithering, ASCII Text Art,
- * Minecraft Voxel Blockify, Black & White Halftone Dot Matrix, and Retro Pixelation for framedat
+ * Minecraft Voxel Blockify, Paper Cutout Art, Black & White Halftone Dot Matrix, and Retro Pixelation for framedat
  */
 
 export type CreativeEffectType =
+  | 'minecraft_blocks'
+  | 'paper_cutout'
   | 'bitmap_dither'
   | 'ascii_art'
-  | 'minecraft_blocks'
   | 'halftone_dots'
   | 'pixelate'
   | 'line_sketch';
@@ -109,6 +110,10 @@ export async function processCreativeEffect(
       applyMinecraftVoxelBlocks(ctx, img, width, height, options);
       break;
 
+    case 'paper_cutout':
+      applyPaperCutoutArt(ctx, img, width, height);
+      break;
+
     case 'bitmap_dither':
       applyFloydSteinbergDither(ctx, imgData, options.threshold);
       break;
@@ -141,8 +146,74 @@ export async function processCreativeEffect(
 }
 
 /**
+ * Paper Cutout Art Filter
+ * Quantizes image into paper craft color layers with drop shadows and cut outlines
+ */
+function applyPaperCutoutArt(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  w: number,
+  h: number
+) {
+  // Draw base image to offscreen canvas
+  const offscreen = document.createElement('canvas');
+  offscreen.width = w;
+  offscreen.height = h;
+  const offCtx = offscreen.getContext('2d');
+  if (!offCtx) return;
+  offCtx.drawImage(img, 0, 0, w, h);
+
+  const imgData = offCtx.getImageData(0, 0, w, h);
+  const data = imgData.data;
+
+  // Background Paper Texture Base
+  ctx.fillStyle = '#10131B';
+  ctx.fillRect(0, 0, w, h);
+
+  const numLevels = 6;
+  const step = 255 / numLevels;
+
+  // Render quantized color regions with paper drop shadows
+  for (let y = 0; y < h; y += 3) {
+    for (let x = 0; x < w; x += 3) {
+      const idx = (y * w + x) * 4;
+      const r = data[idx];
+      const g = data[idx + 1];
+      const b = data[idx + 2];
+
+      const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+      const level = Math.floor(luma / step);
+
+      // Quantized color tone
+      const qr = Math.floor(r / step) * step;
+      const qg = Math.floor(g / step) * step;
+      const qb = Math.floor(b / step) * step;
+
+      // Draw paper cut layer shadow offset
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+      ctx.fillRect(x + level, y + level, 3, 3);
+
+      // Draw paper cut swatch
+      ctx.fillStyle = `rgb(${qr}, ${qg}, ${qb})`;
+      ctx.fillRect(x, y, 3, 3);
+    }
+  }
+
+  // Draw paper edge contour line accents
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+  for (let y = 5; y < h - 5; y += 20) {
+    for (let x = 5; x < w - 5; x += 20) {
+      const idx = (y * w + x) * 4;
+      if (data[idx] > 180) {
+        ctx.strokeRect(x, y, 16, 16);
+      }
+    }
+  }
+}
+
+/**
  * Minecraft Voxel Blockify Filter
- * Converts background pixels into 3D Minecraft Voxel blocks while optionally protecting the main subject!
  */
 function applyMinecraftVoxelBlocks(
   ctx: CanvasRenderingContext2D,
@@ -153,7 +224,6 @@ function applyMinecraftVoxelBlocks(
 ) {
   const blockSize = Math.max(6, options.dotSize);
 
-  // Sample original image data
   const sampleCanvas = document.createElement('canvas');
   sampleCanvas.width = w;
   sampleCanvas.height = h;
@@ -163,26 +233,21 @@ function applyMinecraftVoxelBlocks(
   const imgData = sampleCtx.getImageData(0, 0, w, h);
   const data = imgData.data;
 
-  // Center coordinates for subject protection thresholding
   const centerX = w / 2;
   const centerY = h / 2;
   const maxRadius = Math.min(w, h) * (options.subjectSensitivity / 100);
 
-  // Draw base original image first if subject protection enabled
   ctx.drawImage(img, 0, 0, w, h);
 
   for (let y = 0; y < h; y += blockSize) {
     for (let x = 0; x < w; x += blockSize) {
-      // Calculate distance to center for subject protection
       const distFromCenter = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
       const isSubjectRegion = options.protectSubject && distFromCenter < maxRadius;
 
-      // If in protected subject zone, keep original image details crisp!
       if (isSubjectRegion) {
         continue;
       }
 
-      // Sample average color of block
       let avgR = 0, avgG = 0, avgB = 0, count = 0;
 
       for (let by = 0; by < blockSize && y + by < h; by += 2) {
@@ -201,10 +266,8 @@ function applyMinecraftVoxelBlocks(
         avgB = Math.round(avgB / count);
       }
 
-      // Find closest Minecraft block color palette match
       const nearestBlock = getNearestMinecraftColor(avgR, avgG, avgB);
 
-      // Draw Minecraft Voxel 3D Block with bevel highlight & shadow
       ctx.fillStyle = `rgb(${nearestBlock.r}, ${nearestBlock.g}, ${nearestBlock.b})`;
       ctx.fillRect(x, y, blockSize, blockSize);
 
@@ -226,9 +289,6 @@ function applyMinecraftVoxelBlocks(
   }
 }
 
-/**
- * Finds closest color match in classic Minecraft color palette
- */
 function getNearestMinecraftColor(r: number, g: number, b: number) {
   let minDistance = Infinity;
   let closest = MINECRAFT_PALETTE[0];
@@ -248,9 +308,6 @@ function getNearestMinecraftColor(r: number, g: number, b: number) {
   return closest;
 }
 
-/**
- * Floyd-Steinberg 1-Bit Monochromatic Dithering Algorithm
- */
 function applyFloydSteinbergDither(ctx: CanvasRenderingContext2D, imgData: ImageData, threshold: number) {
   const data = imgData.data;
   const w = imgData.width;
@@ -283,9 +340,6 @@ function distributeError(data: Uint8ClampedArray, idx: number, err: number) {
   data[idx + 2] = Math.max(0, Math.min(255, data[idx + 2] + err));
 }
 
-/**
- * Newspaper B&W Halftone Dot Matrix Pattern
- */
 function applyHalftoneDotMatrix(ctx: CanvasRenderingContext2D, img: HTMLImageElement, w: number, h: number, dotSize: number) {
   ctx.fillStyle = '#08090C';
   ctx.fillRect(0, 0, w, h);
@@ -315,9 +369,6 @@ function applyHalftoneDotMatrix(ctx: CanvasRenderingContext2D, img: HTMLImageEle
   }
 }
 
-/**
- * 8-Bit Pixelate Filter
- */
 function applyPixelate(ctx: CanvasRenderingContext2D, img: HTMLImageElement, w: number, h: number, pixelSize: number) {
   ctx.imageSmoothingEnabled = false;
   const smallW = Math.max(1, Math.floor(w / pixelSize));
@@ -333,9 +384,6 @@ function applyPixelate(ctx: CanvasRenderingContext2D, img: HTMLImageElement, w: 
   ctx.drawImage(offscreen, 0, 0, smallW, smallH, 0, 0, w, h);
 }
 
-/**
- * Contour Line Sketch
- */
 function applyLineSketch(ctx: CanvasRenderingContext2D, imgData: ImageData, threshold: number) {
   const data = imgData.data;
   const w = imgData.width;

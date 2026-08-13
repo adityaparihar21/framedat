@@ -111,8 +111,8 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
   return (
     <div className="w-full flex flex-col justify-between min-h-[calc(100vh-140px)]">
       {!sourceBlob ? (
-        /* CREATIVE STUDIO EMPTY STATE */
-        <div className="w-full max-w-[1100px] mx-auto flex flex-col items-center justify-between my-auto px-6 py-10 sm:py-16 text-center select-none font-sans relative">
+        /* CREATIVE IMAGE STUDIO EMPTY STATE WORKSPACE */
+        <div className="w-full max-w-[1180px] mx-auto flex flex-col items-center justify-between my-auto px-6 py-12 sm:py-20 text-center select-none font-sans relative">
           <input
             ref={fileInputRef}
             type="file"
@@ -121,18 +121,18 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
             className="hidden"
           />
 
-          <div className="mb-10 sm:mb-12 max-w-[680px] animate-hero-fade">
-            <div className="font-mono text-xs tracking-[0.15em] text-[--text-tertiary] uppercase mb-3 flex items-center justify-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[--accent-blue]"></span>
-              <span>STUDIO / MINECRAFT VOXEL & ASCII ART</span>
+          <div className="mb-12 sm:mb-16 max-w-[720px] animate-hero-fade">
+            <div className="font-mono text-xs tracking-[0.15em] text-[--text-tertiary] uppercase mb-4 flex items-center justify-center gap-2.5">
+              <span className="w-2 h-2 rounded-full bg-[--accent-blue]"></span>
+              <span>STUDIO / IMAGE CONVERTER & ART CREATOR</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[--text-primary] mb-4 leading-[1.08] font-sans">
-              Minecraft Voxel & ASCII Studio
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[--text-primary] mb-6 leading-[1.06] font-sans">
+              Image Studio & Converter
             </h1>
 
-            <p className="text-base sm:text-lg text-[--text-secondary] font-normal leading-relaxed">
-              Transform background scenery into Minecraft Voxel Blocks while keeping main subjects in crisp original detail.
+            <p className="text-base sm:text-lg text-[--text-secondary] font-normal leading-relaxed max-w-[640px] mx-auto">
+              Convert photos and video frames into Minecraft Voxel Blocks, Paper Cutout Art, 1-Bit Dither, and ASCII Art.
             </p>
           </div>
 
@@ -141,27 +141,27 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`w-full max-w-[780px] min-h-[300px] sm:min-h-[340px] p-8 sm:p-12 text-center cursor-pointer rounded-2xl border transition-all duration-200 flex flex-col items-center justify-center relative mb-8 group ${
+            className={`w-full max-w-[820px] min-h-[320px] sm:min-h-[360px] p-10 sm:p-14 text-center cursor-pointer rounded-2xl border transition-all duration-200 flex flex-col items-center justify-center relative mb-12 group ${
               isDragOver
                 ? 'border-[--accent-blue] bg-[--accent-blue-dim] scale-[1.01] shadow-2xl shadow-[--accent-blue]/10'
                 : 'border-[--border-subtle] bg-[#10131B] hover:border-[--border-hover] hover:bg-[#161A24] shadow-2xl'
             }`}
           >
-            <div className="w-12 h-12 mb-5 rounded-2xl bg-[--bg-surface-2] border border-[--border-subtle] flex items-center justify-center text-[--accent-blue] group-hover:scale-110 transition-transform">
-              <Box className="w-5 h-5" />
+            <div className="w-14 h-14 mb-6 rounded-2xl bg-[--bg-surface-2] border border-[--border-subtle] flex items-center justify-center text-[--accent-blue] group-hover:scale-110 transition-transform">
+              <Box className="w-6 h-6" />
             </div>
 
-            <h2 className="text-lg sm:text-xl font-bold text-[--text-primary] mb-2 font-sans">
-              {isDragOver ? 'Release to render Minecraft Voxel blocks' : 'Drop photo or image here'}
+            <h2 className="text-xl sm:text-2xl font-bold text-[--text-primary] mb-3 font-sans">
+              {isDragOver ? 'Release image to open Image Studio' : 'Drop photo or image here'}
             </h2>
 
-            <p className="text-xs sm:text-sm text-[--text-tertiary] mb-6 font-normal">
+            <p className="text-xs sm:text-sm text-[--text-tertiary] mb-8 font-normal">
               or choose an image file from your device
             </p>
 
             <button
               type="button"
-              className="btn btn-primary text-xs py-2.5 px-6 font-semibold flex items-center gap-2 shadow-lg shadow-[--accent-blue]/20"
+              className="btn btn-primary text-xs py-3 px-7 font-semibold flex items-center gap-2.5 shadow-lg shadow-[--accent-blue]/20"
             >
               <span>Choose Photo</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -170,25 +170,25 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
         </div>
       ) : (
         /* ACTIVE CREATIVE WORKSPACE */
-        <div className="page-container py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[--border-subtle]">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-[--accent-blue-dim] border border-[--accent-blue-border] flex items-center justify-center text-[--accent-blue]">
+        <div className="page-container py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-5 border-b border-[--border-subtle]">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-[--accent-blue-dim] border border-[--accent-blue-border] flex items-center justify-center text-[--accent-blue]">
                 <Box className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-[--text-primary] font-sans">
-                  Minecraft Voxel & ASCII Studio
+                <h2 className="text-lg font-bold text-[--text-primary] font-sans">
+                  Image Studio & Converter
                 </h2>
                 <p className="text-xs text-[--text-secondary] font-mono">
-                  Minecraft Voxel Blocks • 1-Bit Dither • Halftone Matrix • ASCII Art
+                  Minecraft Blocks • Paper Cutout • 1-Bit Dither • ASCII Art
                 </p>
               </div>
             </div>
 
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="btn btn-secondary text-xs py-1.5 px-3 font-mono flex items-center gap-1"
+              className="btn btn-secondary text-xs py-2 px-4 font-mono flex items-center gap-1.5"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Change Photo
             </button>
@@ -201,18 +201,19 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Controls Panel */}
-            <div className="lg:col-span-4 tool-surface p-4 flex flex-col gap-4 font-mono text-xs">
-              <div className="font-bold text-sm text-[--text-primary] border-b border-[--border-subtle] pb-2 flex items-center gap-2">
+            <div className="lg:col-span-4 tool-surface p-5 flex flex-col gap-5 font-mono text-xs">
+              <div className="font-bold text-sm text-[--text-primary] border-b border-[--border-subtle] pb-3 flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-[--accent-blue]" />
-                <span>Effect Presets</span>
+                <span>Creative Effect Presets</span>
               </div>
 
               {/* Effect Mode Selector */}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2.5">
                 {[
                   { id: 'minecraft_blocks', label: '📦 Minecraft Voxel Blocks' },
+                  { id: 'paper_cutout', label: '✂️ Paper Cutout Art' },
                   { id: 'bitmap_dither', label: '▒ 1-Bit Bitmap Dither' },
                   { id: 'ascii_art', label: '🔤 ASCII Text Art' },
                   { id: 'halftone_dots', label: '⚪ Halftone Dot Matrix' },
@@ -222,7 +223,7 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
                   <button
                     key={item.id}
                     onClick={() => setOptions({ ...options, effect: item.id as CreativeEffectType })}
-                    className={`px-3 py-2 rounded text-left transition-all ${
+                    className={`px-3.5 py-2.5 rounded-lg text-left transition-all ${
                       options.effect === item.id
                         ? 'bg-[--accent-blue-dim] border border-[--accent-blue-border] text-[--accent-blue] font-bold'
                         : 'bg-[--bg-surface-2] border border-[--border-subtle] text-[--text-secondary] hover:text-[--text-primary]'
@@ -233,12 +234,12 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
                 ))}
               </div>
 
-              {/* SUBJECT PROTECTION CHECKBOX & SLIDER (Audio Directive: Keep subject original while background becomes Minecraft blocks) */}
+              {/* SUBJECT PROTECTION CHECKBOX & SLIDER */}
               {options.effect === 'minecraft_blocks' && (
-                <div className="p-3 rounded bg-[--bg-surface-2]/40 border border-[--accent-blue-border]">
+                <div className="p-3.5 rounded-xl bg-[--bg-surface-2]/40 border border-[--accent-blue-border]">
                   <div className="flex items-center justify-between mb-2">
                     <label className="flex items-center gap-1.5 font-semibold text-[--text-primary] cursor-pointer">
-                      <Shield className="w-3.5 h-3.5 text-[--accent-blue]" />
+                      <Shield className="w-4 h-4 text-[--accent-blue]" />
                       <span>Protect Main Subject</span>
                     </label>
                     <input
@@ -250,9 +251,9 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
                   </div>
 
                   {options.protectSubject && (
-                    <div>
-                      <div className="flex items-center justify-between mb-1 text-[11px]">
-                        <span className="text-[--text-tertiary]">Subject Radius Bounds</span>
+                    <div className="mt-2 pt-2 border-t border-[--border-subtle]/50">
+                      <div className="flex items-center justify-between mb-1.5 text-[11px]">
+                        <span className="text-[--text-tertiary]">Subject Bounds</span>
                         <span className="font-bold text-[--accent-blue]">{options.subjectSensitivity}%</span>
                       </div>
                       <input
@@ -263,9 +264,6 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
                         onChange={(e) => setOptions({ ...options, subjectSensitivity: parseInt(e.target.value) || 30 })}
                         className="w-full h-1.5 bg-[--bg-surface-3] rounded appearance-none cursor-pointer accent-[--accent-blue]"
                       />
-                      <p className="text-[10px] text-[--text-tertiary] mt-1 font-sans">
-                        Keeps central subject in crisp original quality while turning background into Minecraft Voxel blocks.
-                      </p>
                     </div>
                   )}
                 </div>
@@ -274,7 +272,7 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
               {/* Voxel Block Size / Grid Density Slider */}
               {(options.effect === 'minecraft_blocks' || options.effect === 'halftone_dots' || options.effect === 'pixelate' || options.effect === 'ascii_art') && (
                 <div>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-1.5">
                     <label className="text-[11px] text-[--text-tertiary] uppercase">
                       {options.effect === 'minecraft_blocks' ? 'Voxel Block Size' : 'Grid Density'}
                     </label>
@@ -291,30 +289,12 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
                 </div>
               )}
 
-              {/* Threshold Slider */}
-              {(options.effect === 'bitmap_dither' || options.effect === 'line_sketch') && (
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-[11px] text-[--text-tertiary] uppercase">Cutoff Threshold</label>
-                    <span className="font-bold text-[--accent-blue]">{options.threshold}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="30"
-                    max="220"
-                    value={options.threshold}
-                    onChange={(e) => setOptions({ ...options, threshold: parseInt(e.target.value) || 128 })}
-                    className="w-full h-1.5 bg-[--bg-surface-3] rounded appearance-none cursor-pointer accent-[--accent-blue]"
-                  />
-                </div>
-              )}
-
               {/* Action Buttons */}
-              <div className="mt-auto pt-4 border-t border-[--border-subtle] flex flex-col gap-2">
+              <div className="mt-auto pt-5 border-t border-[--border-subtle] flex flex-col gap-2.5">
                 {options.effect === 'ascii_art' && (
                   <button
                     onClick={handleCopyAscii}
-                    className="btn btn-secondary w-full text-xs py-2 font-mono"
+                    className="btn btn-secondary w-full text-xs py-2.5 font-mono"
                   >
                     <Copy className="w-4 h-4 text-[--accent-blue]" />
                     <span>Copy ASCII Text</span>
@@ -324,7 +304,7 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
                 <button
                   onClick={handleDownload}
                   disabled={!resultBlob || isProcessing}
-                  className="btn btn-primary w-full text-xs py-2.5 font-bold font-mono shadow-md shadow-[--accent-blue]/20"
+                  className="btn btn-primary w-full text-xs py-3 font-bold font-mono shadow-md shadow-[--accent-blue]/20"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download Art Render PNG</span>
@@ -333,18 +313,18 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
             </div>
 
             {/* Display Canvas & ASCII View */}
-            <div className="lg:col-span-8 tool-surface p-4 flex flex-col">
-              <div className="flex items-center justify-between mb-3 text-xs font-mono">
+            <div className="lg:col-span-8 tool-surface p-5 flex flex-col">
+              <div className="flex items-center justify-between mb-4 text-xs font-mono">
                 <span className="text-[--text-tertiary] uppercase">Rendered Output Canvas</span>
                 <span className="text-[--accent-blue]">{isProcessing ? 'Rendering effect...' : 'Render Ready'}</span>
               </div>
 
               {options.effect === 'ascii_art' ? (
-                <div className="relative aspect-video rounded bg-[#08090C] overflow-auto p-4 border border-[--border-subtle] font-mono text-[9px] leading-[9px] text-[--accent-blue] whitespace-pre select-all">
+                <div className="relative aspect-video rounded-xl bg-[#08090C] overflow-auto p-5 border border-[--border-subtle] font-mono text-[9px] leading-[9px] text-[--accent-blue] whitespace-pre select-all">
                   {asciiText}
                 </div>
               ) : (
-                <div className="relative aspect-video rounded bg-black flex items-center justify-center overflow-hidden border border-[--border-subtle]">
+                <div className="relative aspect-video rounded-xl bg-black flex items-center justify-center overflow-hidden border border-[--border-subtle]">
                   {resultUrl && (
                     <img src={resultUrl} alt="Creative Effect Output" className="w-full h-full object-contain select-none" />
                   )}

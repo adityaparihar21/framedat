@@ -272,12 +272,12 @@ export const App: React.FC = () => {
         hasVideo={!!metadata}
       />
 
-      <main className={`flex-1 w-full flex flex-col ${toolMode === 'extractor' && !metadata ? 'items-center justify-center my-auto min-h-[calc(100vh-140px)]' : 'py-6 sm:py-8'}`}>
+      <main className={`flex-1 w-full flex flex-col ${toolMode === 'extractor' && !metadata ? 'items-center justify-center my-auto min-h-[calc(100vh-140px)]' : 'py-8 sm:py-12'}`}>
         {toolMode === 'audio_cleaner' ? (
           /* AUDIO NOISE CLEANER STUDIO */
           <AudioCleaner onShowToast={showToast} />
-        ) : toolMode === 'bitmap_ascii' ? (
-          /* BITMAP & ASCII ART STUDIO */
+        ) : toolMode === 'image_studio' ? (
+          /* IMAGE STUDIO & CREATIVE CONVERTER */
           <BitmapAsciiStudio
             initialImageBlob={bitmapStudioInitialBlob}
             onShowToast={showToast}
@@ -288,7 +288,7 @@ export const App: React.FC = () => {
             onFileSelect={handleFileSelect}
             onSelectSampleVideo={handleSelectSampleVideo}
             onOpenAudioCleaner={() => setToolMode('audio_cleaner')}
-            onOpenBitmapAscii={() => setToolMode('bitmap_ascii')}
+            onOpenImageStudio={() => setToolMode('image_studio')}
             isLoadingSample={isLoadingSample || isLoadingMetadata}
           />
         ) : (
@@ -349,7 +349,7 @@ export const App: React.FC = () => {
                   onOpenContactSheetModal={() => setIsContactSheetOpen(true)}
                   onRemoveFrameBackground={(blob) => {
                     setBitmapStudioInitialBlob(blob);
-                    setToolMode('bitmap_ascii');
+                    setToolMode('image_studio');
                   }}
                   videoName={metadata.name}
                 />
@@ -402,7 +402,7 @@ export const App: React.FC = () => {
           }`}
         >
           <Video className="w-4 h-4" />
-          <span>Extract</span>
+          <span>Extractor</span>
         </button>
 
         <button
@@ -418,15 +418,15 @@ export const App: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setToolMode('bitmap_ascii')}
+          onClick={() => setToolMode('image_studio')}
           className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all ${
-            toolMode === 'bitmap_ascii'
+            toolMode === 'image_studio'
               ? 'bg-[--accent-blue] text-white font-bold'
               : 'text-[--text-secondary] hover:text-[--text-primary]'
           }`}
         >
           <Grid className="w-4 h-4" />
-          <span>Art</span>
+          <span>Studio</span>
         </button>
       </div>
 
