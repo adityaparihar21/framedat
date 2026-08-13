@@ -234,9 +234,9 @@ export const App: React.FC = () => {
         hasVideo={!!metadata}
       />
 
-      <main className="flex-1 w-full flex flex-col justify-center py-6 sm:py-8">
+      <main className={`flex-1 w-full flex flex-col ${!metadata ? 'items-center justify-center my-auto min-h-[calc(100vh-140px)]' : 'py-6 sm:py-8'}`}>
         {!metadata ? (
-          /* STATE 1: RESTRAINED EMPTY DROPZONE SURFACE */
+          /* STATE 1: PERFECTLY CENTERED ELEGANT DROPZONE */
           <Dropzone
             onFileSelect={handleFileSelect}
             onSelectSampleVideo={handleSelectSampleVideo}
@@ -255,7 +255,7 @@ export const App: React.FC = () => {
               onSnapshotFrame={handleSnapshotSingleFrame}
             />
 
-            {/* 02 — CHOOSE EXTRACTION & ADVANCED EXPORT OPTIONS */}
+            {/* 02 — CHOOSE EXTRACTION */}
             <ExtractionSettings
               metadata={metadata}
               options={options}
