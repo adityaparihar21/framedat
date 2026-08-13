@@ -18,6 +18,7 @@ import { BackgroundRemover } from './components/BackgroundRemover';
 import { CinematicIntro } from './components/CinematicIntro';
 import { ToastContainer, type ToastMessage } from './components/Toast';
 import { Footer } from './components/Footer';
+import { Video, Scissors, History } from 'lucide-react';
 
 import type { VideoMetadata, ExtractionOptions, FrameData, ExtractionProgress } from './types';
 import { detectVideoMetadata } from './utils/videoMetadata';
@@ -256,7 +257,7 @@ export const App: React.FC = () => {
   const selectedFrames = frames.filter((f) => f.selected);
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[--bg-app] text-[--text-primary] transition-colors duration-150">
+    <div className="min-h-screen flex flex-col justify-between bg-[--bg-app] text-[--text-primary] transition-colors duration-150 pb-16 md:pb-0">
       {showIntro && toolMode === 'extractor' && <CinematicIntro onComplete={handleIntroComplete} />}
 
       <Header
@@ -266,6 +267,7 @@ export const App: React.FC = () => {
         onToggleTheme={toggleTheme}
         onReset={handleReset}
         onReplayIntro={handleReplayIntro}
+        onExportAction={metadata && frames.length > 0 ? () => handleStartExtraction() : undefined}
         hasVideo={!!metadata}
       />
 
@@ -384,6 +386,45 @@ export const App: React.FC = () => {
       )}
 
       <ToastContainer toasts={toasts} onDismiss={handleDismissToast} />
+
+      {/* MOBILE BOTTOM NAVIGATION BAR (Matching Image 2 UI) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#090B10]/95 backdrop-blur-md border-t border-[--border-subtle] px-4 py-2 flex items-center justify-around font-mono text-[11px]">
+        <button
+          onClick={() => setToolMode('extractor')}
+          className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-xl transition-all ${
+            toolMode === 'extractor'
+              ? 'bg-[--accent-blue] text-white font-bold'
+              : 'text-[--text-secondary] hover:text-[--text-primary]'
+          }`}
+        >
+          <Video className="w-4 h-4" />
+          <span>Extract</span>
+        </button>
+
+        <button
+          onClick={() => setToolMode('bg_remover')}
+          className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-xl transition-all ${
+            toolMode === 'bg_remover'
+              ? 'bg-[--accent-blue] text-white font-bold'
+              : 'text-[--text-secondary] hover:text-[--text-primary]'
+          }`}
+        >
+          <Scissors className="w-4 h-4" />
+          <span>Remove</span>
+        </button>
+
+        <button
+          onClick={() => setToolMode('assets')}
+          className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-xl transition-all ${
+            toolMode === 'assets'
+              ? 'bg-[--accent-blue] text-white font-bold'
+              : 'text-[--text-secondary] hover:text-[--text-primary]'
+          }`}
+        >
+          <History className="w-4 h-4" />
+          <span>History</span>
+        </button>
+      </div>
 
       <Footer />
     </div>
