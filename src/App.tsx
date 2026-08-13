@@ -14,6 +14,7 @@ import { LightboxModal } from './components/LightboxModal';
 import { CompareModal } from './components/CompareModal';
 import { GifExportModal } from './components/GifExportModal';
 import { ContactSheetModal } from './components/ContactSheetModal';
+import { CinematicIntro } from './components/CinematicIntro';
 import { Footer } from './components/Footer';
 
 import type { VideoMetadata, ExtractionOptions, FrameData, ExtractionProgress } from './types';
@@ -27,6 +28,13 @@ export const App: React.FC = () => {
   const [metadata, setMetadata] = useState<VideoMetadata | null>(null);
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
   const [isLoadingSample, setIsLoadingLoadingSample] = useState(false);
+  const [showIntro, setShowIntro] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('framedat_intro_seen') !== 'true';
+    } catch {
+      return true;
+    }
+  });
 
   const [options, setOptions] = useState<ExtractionOptions>({
     mode: 'all',
@@ -91,6 +99,17 @@ export const App: React.FC = () => {
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const handleIntroComplete = () => {
+    try {
+      localStorage.setItem('framedat_intro_seen', 'true');
+    } catch {}
+    setShowIntro(false);
+  };
+
+  const handleReplayIntro = () => {
+    setShowIntro(true);
   };
 
   const handleReset = () => {
@@ -227,10 +246,13 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[--bg-app] text-[--text-primary] transition-colors duration-150">
+      {showIntro && <CinematicIntro onComplete={handleIntroComplete} />}
+
       <Header
         theme={theme}
         onToggleTheme={toggleTheme}
         onReset={handleReset}
+        onReplayIntro={handleReplayIntro}
         hasVideo={!!metadata}
       />
 

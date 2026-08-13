@@ -1,10 +1,11 @@
 import React from 'react';
-import { Sun, Moon, Lock, RefreshCw } from 'lucide-react';
+import { Sun, Moon, Lock, RefreshCw, Film } from 'lucide-react';
 
 interface HeaderProps {
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
   onReset: () => void;
+  onReplayIntro?: () => void;
   hasVideo: boolean;
 }
 
@@ -12,6 +13,7 @@ export const Header: React.FC<HeaderProps> = ({
   theme,
   onToggleTheme,
   onReset,
+  onReplayIntro,
   hasVideo,
 }) => {
   return (
@@ -28,11 +30,22 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Right: Controls & Status */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-1.5 text-xs text-[--text-secondary]">
             <Lock className="w-3.5 h-3.5 text-[--text-tertiary]" />
             <span className="hidden sm:inline font-mono">Local processing</span>
           </div>
+
+          {!hasVideo && onReplayIntro && (
+            <button
+              onClick={onReplayIntro}
+              className="btn btn-ghost text-xs py-1 px-2.5 flex items-center gap-1.5 text-[--text-secondary]"
+              title="Replay cinematic intro animation"
+            >
+              <Film className="w-3.5 h-3.5 text-[--accent-blue]" />
+              <span className="hidden sm:inline font-mono text-[11px]">Replay Intro</span>
+            </button>
+          )}
 
           {hasVideo && (
             <button
