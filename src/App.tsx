@@ -28,13 +28,7 @@ export const App: React.FC = () => {
   const [metadata, setMetadata] = useState<VideoMetadata | null>(null);
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
   const [isLoadingSample, setIsLoadingLoadingSample] = useState(false);
-  const [showIntro, setShowIntro] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('framedat_intro_seen') !== 'true';
-    } catch {
-      return true;
-    }
-  });
+  const [showIntro, setShowIntro] = useState<boolean>(true);
 
   const [options, setOptions] = useState<ExtractionOptions>({
     mode: 'all',
@@ -102,9 +96,6 @@ export const App: React.FC = () => {
   };
 
   const handleIntroComplete = () => {
-    try {
-      localStorage.setItem('framedat_intro_seen', 'true');
-    } catch {}
     setShowIntro(false);
   };
 

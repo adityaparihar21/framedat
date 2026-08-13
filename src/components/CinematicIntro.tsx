@@ -78,9 +78,6 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
   }, [onComplete]);
 
   const skipIntro = () => {
-    try {
-      localStorage.setItem('framedat_intro_seen', 'true');
-    } catch {}
     setPhase('done');
     onComplete();
   };
