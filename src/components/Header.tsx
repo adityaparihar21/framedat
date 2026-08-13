@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lock, SlidersHorizontal, Settings, Film, RefreshCw } from 'lucide-react';
+import { SlidersHorizontal, Settings, Film, RefreshCw } from 'lucide-react';
 
 export type AppToolMode = 'extractor' | 'bg_remover' | 'assets' | 'settings';
 
@@ -25,26 +25,27 @@ export const Header: React.FC<HeaderProps> = ({
   hasVideo,
 }) => {
   return (
-    <header className="border-b border-[--border-subtle] bg-[#090B10] px-4 sm:px-8 py-3 transition-colors select-none sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        {/* Left: Brand Wordmark & Nav Items (Desktop matching Image 1) */}
-        <div className="flex items-center gap-6 sm:gap-10">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={onReset}>
-            <span className="font-extrabold text-lg tracking-tight text-[--text-primary] font-sans">
+    <header className="border-b border-[--border-subtle] bg-[#08090C]/90 backdrop-blur-md px-4 sm:px-8 py-3.5 transition-colors select-none sticky top-0 z-50">
+      <div className="max-w-[1200px] mx-auto flex items-center justify-between">
+        {/* Left: Brand Logo & Navigation (Section 2 Directive) */}
+        <div className="flex items-center gap-8 sm:gap-12">
+          {/* Logo with strong visual weight */}
+          <div className="flex items-center gap-2 cursor-pointer group" onClick={onReset}>
+            <span className="font-extrabold text-lg sm:text-xl tracking-tight text-[--text-primary] font-sans group-hover:text-[--accent-blue] transition-colors">
               framedat
             </span>
-            <span className="font-mono text-[10px] font-medium text-[--text-tertiary] bg-[--bg-surface-2] px-1.5 py-0.5 rounded border border-[--border-subtle] hidden sm:inline">
+            <span className="font-mono text-[10px] text-[--text-tertiary] bg-[--bg-surface-2] px-1.5 py-0.5 rounded border border-[--border-subtle] hidden sm:inline">
               v1.0
             </span>
           </div>
 
-          {/* Desktop Navigation Links (Image 1 UI) */}
-          <nav className="hidden md:flex items-center gap-6 font-sans text-xs">
+          {/* Understated Professional Nav Items */}
+          <nav className="hidden md:flex items-center gap-7 font-sans text-xs">
             <button
               onClick={() => onChangeToolMode('extractor')}
               className={`py-1 transition-all relative ${
                 toolMode === 'extractor'
-                  ? 'text-[--text-primary] font-bold border-b-2 border-[--accent-blue]'
+                  ? 'text-[--text-primary] font-semibold border-b-2 border-[--accent-blue]'
                   : 'text-[--text-secondary] hover:text-[--text-primary]'
               }`}
             >
@@ -54,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onChangeToolMode('bg_remover')}
               className={`py-1 transition-all relative ${
                 toolMode === 'bg_remover'
-                  ? 'text-[--text-primary] font-bold border-b-2 border-[--accent-blue]'
+                  ? 'text-[--text-primary] font-semibold border-b-2 border-[--accent-blue]'
                   : 'text-[--text-secondary] hover:text-[--text-primary]'
               }`}
             >
@@ -64,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onChangeToolMode('assets')}
               className={`py-1 transition-all relative ${
                 toolMode === 'assets'
-                  ? 'text-[--text-primary] font-bold border-b-2 border-[--accent-blue]'
+                  ? 'text-[--text-primary] font-semibold border-b-2 border-[--accent-blue]'
                   : 'text-[--text-secondary] hover:text-[--text-primary]'
               }`}
             >
@@ -74,7 +75,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onChangeToolMode('settings')}
               className={`py-1 transition-all relative ${
                 toolMode === 'settings'
-                  ? 'text-[--text-primary] font-bold border-b-2 border-[--accent-blue]'
+                  ? 'text-[--text-primary] font-semibold border-b-2 border-[--accent-blue]'
                   : 'text-[--text-secondary] hover:text-[--text-primary]'
               }`}
             >
@@ -83,11 +84,23 @@ export const Header: React.FC<HeaderProps> = ({
           </nav>
         </div>
 
-        {/* Right: Controls, Local Status & Export CTA (Desktop & Mobile matching Image 1 & 2) */}
+        {/* Right: Reassuring Product Status & Actions */}
         <div className="flex items-center gap-3 sm:gap-4">
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-[--text-tertiary] font-mono">
-            <Lock className="w-3.5 h-3.5" />
-            <span>Local processing</span>
+          {/* Reassuring Product Status Dot with Tooltip */}
+          <div
+            className="hidden sm:flex items-center gap-2 text-xs text-[--text-secondary] font-sans relative group cursor-help px-2 py-1 rounded hover:bg-[--bg-surface-2] transition-colors"
+            title="Your files stay on your device. Zero cloud uploads."
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="font-medium text-[11px] text-[--text-secondary]">Local processing</span>
+
+            {/* Subtle Hover Tooltip */}
+            <div className="absolute right-0 top-full mt-1.5 hidden group-hover:block bg-[--bg-surface-3] text-[--text-primary] text-[11px] font-sans px-2.5 py-1 rounded shadow-xl border border-[--border-subtle] whitespace-nowrap z-50">
+              Your files stay on your device.
+            </div>
           </div>
 
           {!hasVideo && onReplayIntro && toolMode === 'extractor' && (
@@ -112,7 +125,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Export Button (Matching Image 1 Desktop CTA) */}
+          {/* Export Button (Active inside workspace) */}
           {onExportAction && (
             <button
               onClick={onExportAction}
@@ -122,10 +135,10 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Settings & Theme Toggle Button (Matching Image 1 & Image 2 UI) */}
+          {/* Settings / Theme Toggle Button */}
           <button
             onClick={onToggleTheme}
-            className="w-8 h-8 rounded bg-[--bg-surface-2] border border-[--border-subtle] flex items-center justify-center hover:bg-[--bg-surface-3] text-[--text-secondary] hover:text-[--text-primary] transition-all"
+            className="w-8 h-8 rounded-lg bg-[--bg-surface-2] border border-[--border-subtle] flex items-center justify-center hover:bg-[--bg-surface-3] text-[--text-secondary] hover:text-[--text-primary] transition-all"
             title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
           >
             <SlidersHorizontal className="w-4 h-4 hidden sm:block" />
