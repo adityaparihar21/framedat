@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { BackgroundRemovalOptions } from '../utils/backgroundRemoval';
 import { removeBackground, autoDetectKeyColor } from '../utils/backgroundRemoval';
 import { saveAs } from 'file-saver';
-import { Upload, Download, Pipette, RefreshCw, Scissors, Sparkles, Shield } from 'lucide-react';
+import { Upload, Download, Pipette, RefreshCw, Scissors, Sparkles, Shield, ArrowRight, Layers, Sliders } from 'lucide-react';
 
 interface BackgroundRemoverProps {
   initialImageBlob?: Blob | null;
@@ -20,6 +20,7 @@ export const BackgroundRemover: React.FC<BackgroundRemoverProps> = ({
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [resultBlob, setResultBlob] = useState<Blob | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const [previewViewMode, setPreviewViewMode] = useState<'split' | 'transparent' | 'original'>('split');
 
   const [options, setOptions] = useState<BackgroundRemovalOptions>({
@@ -84,6 +85,27 @@ export const BackgroundRemover: React.FC<BackgroundRemoverProps> = ({
     }
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      if (file.type.startsWith('image/')) {
+        setSourceBlob(file);
+      }
+    }
+  };
+
   const handleCanvasClick = (e: React.MouseEvent<HTMLImageElement>) => {
     if (!isPipetteActive || !imageRef.current) return;
 
@@ -119,58 +141,119 @@ export const BackgroundRemover: React.FC<BackgroundRemoverProps> = ({
   return (
     <div className="w-full flex flex-col justify-between min-h-[calc(100vh-140px)]">
       {!sourceBlob ? (
-        /* Perfectly Centered Empty Upload State — Matched 1:1 to Frame Extractor */
-        <div className="w-full max-w-lg mx-auto flex flex-col items-center justify-center text-center my-auto px-4 py-8">
-          {/* Centered Heading with Generous Breathing Space */}
-          <div className="mb-14 sm:mb-16 min-h-[76px] flex flex-col items-center justify-center">
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[--text-primary] mb-3 font-sans">
+        /* ART-DIRECTED STUDIO EMPTY STATE WORKSPACE */
+        <div className="w-full max-w-[1100px] mx-auto flex flex-col items-center justify-between my-auto px-6 py-10 sm:py-16 text-center select-none font-sans relative">
+          {/* Hidden File Input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+
+          {/* PAGE HEADER COMPOSITION (Sections 3 & 4 Directives) */}
+          <div className="mb-10 sm:mb-12 max-w-[680px] animate-hero-fade">
+            {/* Subtle Eyebrow */}
+            <div className="font-mono text-xs tracking-[0.15em] text-[--text-tertiary] uppercase mb-3 flex items-center justify-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[--accent-blue]"></span>
+              <span>STUDIO / ALPHA EXTRACTION</span>
+            </div>
+
+            {/* Desktop Headline (56-72px) */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[--text-primary] mb-4 leading-[1.08] font-sans">
               Background Removal Studio
             </h1>
-            <p className="text-sm text-[--text-secondary] max-w-sm mx-auto font-normal leading-relaxed">
-              Extract subjects with alpha transparency — 100% client-side canvas engine.
+
+            {/* Benefit-Driven Supporting Description (17-19px) */}
+            <p className="text-base sm:text-lg text-[--text-secondary] font-normal leading-relaxed">
+              Extract clean subjects with transparent backgrounds — entirely on your device.
             </p>
           </div>
 
-          {/* Main Upload Focal Box — 460px Positioned Centered with Generous Gap */}
+          {/* HERO UPLOAD DROP ZONE (Sections 5, 6, 7, 8, 9 Directives) */}
           <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className="w-full max-w-[460px] p-8 sm:p-10 text-center cursor-pointer rounded-2xl border border-[--border-subtle] bg-[--bg-surface-1] hover:border-[--border-hover] hover:bg-[--bg-surface-2]/40 transition-all shadow-xl"
+            className={`w-full max-w-[780px] min-h-[300px] sm:min-h-[340px] p-8 sm:p-12 text-center cursor-pointer rounded-2xl border transition-all duration-200 flex flex-col items-center justify-center relative mb-8 group ${
+              isDragOver
+                ? 'border-[--accent-blue] bg-[--accent-blue-dim] scale-[1.01] shadow-2xl shadow-[--accent-blue]/10'
+                : 'border-[--border-subtle] bg-[#10131B] hover:border-[--border-hover] hover:bg-[#161A24] shadow-2xl'
+            }`}
           >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
+            {/* Refined Upload Icon Container (Section 7 Directive) */}
+            <div className="w-12 h-12 mb-5 rounded-2xl bg-[--bg-surface-2] border border-[--border-subtle] flex items-center justify-center text-[--accent-blue] group-hover:scale-110 transition-transform">
+              <Upload className="w-5 h-5" />
+            </div>
 
-            <div className="flex flex-col items-center justify-center">
-              <div className="w-12 h-12 mb-4 rounded-full bg-[--accent-blue-dim] border border-[--accent-blue-border] flex items-center justify-center text-[--accent-blue]">
-                <Upload className="w-5 h-5" />
-              </div>
+            {/* Upload Instruction */}
+            <h2 className="text-lg sm:text-xl font-bold text-[--text-primary] mb-2 font-sans">
+              {isDragOver ? 'Release to remove background' : 'Drop image here'}
+            </h2>
 
-              <h2 className="text-base font-bold text-[--text-primary] mb-1">
-                Drop image or photo here
-              </h2>
-              <p className="text-xs text-[--text-tertiary] mb-6">
-                PNG, JPEG, WebP, TIFF or video frame
-              </p>
+            <p className="text-xs sm:text-sm text-[--text-tertiary] mb-6 font-normal">
+              or choose a file from your device
+            </p>
 
-              <button className="btn btn-primary text-xs py-2.5 px-6 font-semibold shadow-md shadow-[--accent-blue]/20">
-                Choose Photo
-              </button>
+            {/* Primary Action Button (Section 8 Directive) */}
+            <button
+              type="button"
+              className="btn btn-primary text-xs py-2.5 px-6 font-semibold flex items-center gap-2 shadow-lg shadow-[--accent-blue]/20 group-hover:shadow-[--accent-blue]/30"
+            >
+              <span>Choose Photo</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+
+            {/* Format Metadata Row (Section 10 Directive) */}
+            <div className="mt-8 pt-6 border-t border-[--border-subtle]/50 w-full flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] font-mono text-[--text-tertiary]">
+              <span>PNG &nbsp;·&nbsp; JPEG &nbsp;·&nbsp; WebP &nbsp;·&nbsp; TIFF</span>
+              <span className="text-[--text-secondary] flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-[--accent-blue]" />
+                Private by design. Processed locally.
+              </span>
             </div>
           </div>
 
-          {/* Clean Format Label */}
-          <div className="mt-6 text-center">
-            <span className="text-xs font-mono text-[--text-tertiary]">
-              PNG · JPEG · WebP · TIFF &nbsp;•&nbsp; Alpha Transparency
-            </span>
+          {/* SUBTLE 3-COLUMN PRODUCT CAPABILITY STRIP (Section 11 Directive) */}
+          <div className="w-full max-w-[800px] grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 text-left font-sans">
+            {/* Capability 1: Local Processing */}
+            <div className="p-4 rounded-xl bg-[--bg-surface-1]/50 border border-[--border-subtle] flex items-start gap-3">
+              <div className="w-7 h-7 rounded-lg bg-[--bg-surface-2] flex items-center justify-center text-[--accent-blue] shrink-0 mt-0.5">
+                <Shield className="w-3.5 h-3.5" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-[--text-primary] mb-0.5">Local processing</div>
+                <div className="text-[11px] text-[--text-tertiary]">Files stay on your device</div>
+              </div>
+            </div>
+
+            {/* Capability 2: Alpha Output */}
+            <div className="p-4 rounded-xl bg-[--bg-surface-1]/50 border border-[--border-subtle] flex items-start gap-3">
+              <div className="w-7 h-7 rounded-lg bg-[--bg-surface-2] flex items-center justify-center text-[--accent-blue] shrink-0 mt-0.5">
+                <Layers className="w-3.5 h-3.5" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-[--text-primary] mb-0.5">Alpha output</div>
+                <div className="text-[11px] text-[--text-tertiary]">Export clean transparent PNGs</div>
+              </div>
+            </div>
+
+            {/* Capability 3: Edge Control */}
+            <div className="p-4 rounded-xl bg-[--bg-surface-1]/50 border border-[--border-subtle] flex items-start gap-3">
+              <div className="w-7 h-7 rounded-lg bg-[--bg-surface-2] flex items-center justify-center text-[--accent-blue] shrink-0 mt-0.5">
+                <Sliders className="w-3.5 h-3.5" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-[--text-primary] mb-0.5">Edge control</div>
+                <div className="text-[11px] text-[--text-tertiary]">Refine sensitivity & feathering</div>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
-        /* Active Background Removal Workspace */
+        /* ACTIVE BACKGROUND REMOVAL WORKSPACE (Section 21 Directive) */
         <div className="page-container py-6">
           {/* Header Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[--border-subtle]">
