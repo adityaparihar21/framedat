@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import type { ExtractionOptions, ExtractionMode, ExportFormat, NamingPattern, VideoMetadata } from '../types';
-import { calculateTimestamps } from '../utils/frameExtractor';
-import { ChevronDown, ChevronUp, Play, Settings2 } from 'lucide-react';
+import type { ExtractionOptions, ExtractionMode, ExportFormat, VideoMetadata, OverlayPosition, OverlayStyle, OverlayFontSize } from '../types';
+import { calculateTimestamps, parseSmartFilenamePattern } from '../utils/frameExtractor';
+import { ChevronDown, ChevronUp, Play, Settings2, HelpCircle, Eye } from 'lucide-react';
 
 interface ExtractionSettingsProps {
   metadata: VideoMetadata;
@@ -19,6 +19,8 @@ export const ExtractionSettings: React.FC<ExtractionSettingsProps> = ({
   isExtracting,
 }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showTokenHelp, setShowTokenHelp] = useState(false);
+
   const calculatedTimestamps = calculateTimestamps(metadata, options);
   const estimatedFrameCount = calculatedTimestamps.length;
 
@@ -29,6 +31,14 @@ export const ExtractionSettings: React.FC<ExtractionSettingsProps> = ({
   const handleFormatChange = (format: ExportFormat) => {
     onChangeOptions({ ...options, format });
   };
+
+  const currentPattern = options.namingTemplate || '{video}_frame_{####}.png';
+
+  // Live 3-line filename preview calculation
+  const previewFilenames = [0, 1, 2].map((i) => {
+    const t = calculatedTimestamps[i] || (i * (metadata.duration / 3));
+    return parseSmartFilenamePattern(currentPattern, metadata.name, i, t, options.format, options);
+  });
 
   return (
     <div className="mb-8">
@@ -85,7 +95,7 @@ export const ExtractionSettings: React.FC<ExtractionSettingsProps> = ({
           </div>
         </div>
 
-        {/* Dynamic Mode Controls */}
+        {/* Dynamic Mode Parameters */}
         <div className="p-3 rounded bg-[--bg-surface-2]/40 border border-[--border-subtle] mb-4 text-xs font-mono">
           {options.mode === 'count' && (
             <div className="flex items-center gap-4">
@@ -132,7 +142,7 @@ export const ExtractionSettings: React.FC<ExtractionSettingsProps> = ({
           )}
         </div>
 
-        {/* Dynamic Action Button & Advanced Toggle */}
+        {/* Action Toolbar & Advanced Toggle */}
         <div className="flex items-center justify-between pt-2">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
@@ -153,37 +163,292 @@ export const ExtractionSettings: React.FC<ExtractionSettingsProps> = ({
           </button>
         </div>
 
-        {/* Progressive Disclosure Advanced Options */}
+        {/* Progressive Disclosure: Advanced Options Panel */}
         {showAdvanced && (
-          <div className="mt-4 pt-4 border-t border-[--border-subtle] grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-            <div>
-              <label className="block text-[11px] font-mono text-[--text-tertiary] uppercase mb-1">
-                Resolution Scale
-              </label>
-              <select
-                value={options.scaleRatio}
-                onChange={(e) => onChangeOptions({ ...options, scaleRatio: parseFloat(e.target.value) })}
-                className="w-full px-2.5 py-1.5 rounded bg-[--bg-app] border border-[--border-subtle] font-mono text-[--text-primary]"
-              >
-                <option value={1.0}>100% Native ({metadata.width}×{metadata.height})</option>
-                <option value={0.75}>75% Scale ({Math.round(metadata.width * 0.75)}×{Math.round(metadata.height * 0.75)})</option>
-                <option value={0.5}>50% Scale ({Math.round(metadata.width * 0.5)}×{Math.round(metadata.height * 0.5)})</option>
-              </select>
+          <div className="mt-4 pt-4 border-t border-[--border-subtle] flex flex-col gap-5 text-xs font-mono">
+            {/* FEATURE 01: SMART FILENAME PATTERNS */}
+            <div className="p-3.5 rounded bg-[--bg-surface-2]/40 border border-[--border-subtle]">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5 font-bold text-[--text-primary]">
+                  <span>Naming Pattern</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowTokenHelp(!showTokenHelp)}
+                    className="text-[--accent-blue] hover:underline flex items-center gap-0.5 ml-1"
+                    title="View pattern variable tokens"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    <span className="text-[10px]">Variables</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <label className="text-[10px] text-[--text-tertiary]">Start #:</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={options.startNumber || 1}
+                    onChange={(e) => onChangeOptions({ ...options, startNumber: parseInt(e.target.value) || 1 })}
+                    className="w-14 px-1.5 py-0.5 rounded bg-[--bg-app] border border-[--border-subtle] text-center font-bold text-[--text-primary]"
+                  />
+                  <label className="text-[10px] text-[--text-tertiary]">Pad:</label>
+                  <select
+                    value={options.zeroPad || 4}
+                    onChange={(e) => onChangeOptions({ ...options, zeroPad: parseInt(e.target.value) || 4 })}
+                    className="bg-[--bg-app] border border-[--border-subtle] rounded px-1.5 py-0.5 text-[--text-primary]"
+                  >
+                    <option value={1}>1 digit</option>
+                    <option value={2}>02 digits</option>
+                    <option value={3}>003 digits</option>
+                    <option value={4}>0004 digits</option>
+                    <option value={5}>00005 digits</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Naming Pattern Input */}
+              <input
+                type="text"
+                value={currentPattern}
+                onChange={(e) => onChangeOptions({ ...options, namingPattern: 'smart_pattern', namingTemplate: e.target.value })}
+                placeholder="{video}_frame_{####}.png"
+                className="w-full px-3 py-1.5 rounded bg-[--bg-app] border border-[--border-subtle] text-[--text-primary] font-mono text-xs mb-2"
+              />
+
+              {/* Variable Token Help Guide */}
+              {showTokenHelp && (
+                <div className="p-2.5 mb-2 rounded bg-[--bg-app] border border-[--border-subtle] grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] text-[--text-secondary]">
+                  <div><code className="text-[--accent-blue] font-bold">&#123;video&#125;</code> — Original filename</div>
+                  <div><code className="text-[--accent-blue] font-bold">&#123;frame&#125;</code> — Frame number</div>
+                  <div><code className="text-[--accent-blue] font-bold">&#123;####&#125;</code> — Padded frame #</div>
+                  <div><code className="text-[--accent-blue] font-bold">&#123;time&#125;</code> — Timestamp (sec)</div>
+                  <div><code className="text-[--accent-blue] font-bold">&#123;timecode&#125;</code> — Timecode (MM-SS)</div>
+                  <div><code className="text-[--accent-blue] font-bold">&#123;scene&#125;</code> — Scene number</div>
+                  <div><code className="text-[--accent-blue] font-bold">&#123;index&#125;</code> — Sequence index</div>
+                  <div><code className="text-[--accent-blue] font-bold">&#123;date&#125;</code> — Current date</div>
+                </div>
+              )}
+
+              {/* Live 3-Line Filename Preview */}
+              <div className="text-[10px] text-[--text-tertiary]">
+                <div className="font-semibold text-[--text-secondary] mb-0.5">Live Filename Preview:</div>
+                {previewFilenames.map((fn, idx) => (
+                  <div key={idx} className="text-[--accent-blue] truncate font-mono">
+                    {fn}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div>
-              <label className="block text-[11px] font-mono text-[--text-tertiary] uppercase mb-1">
-                Naming Pattern
-              </label>
-              <select
-                value={options.namingPattern}
-                onChange={(e) => onChangeOptions({ ...options, namingPattern: e.target.value as NamingPattern })}
-                className="w-full px-2.5 py-1.5 rounded bg-[--bg-app] border border-[--border-subtle] font-mono text-[--text-primary]"
-              >
-                <option value="frame_number">video_frame_0001.png</option>
-                <option value="timestamp">video_00-01-23-450.png</option>
-                <option value="seconds">video_12.50s.png</option>
-              </select>
+            {/* FEATURE 02: OPTIONAL FRAME METADATA OVERLAY */}
+            <div className="p-3.5 rounded bg-[--bg-surface-2]/40 border border-[--border-subtle]">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-[--accent-blue]" />
+                  <span className="font-bold text-[--text-primary]">Metadata Overlay</span>
+                </div>
+
+                <div className="segmented-control">
+                  <button
+                    type="button"
+                    onClick={() => onChangeOptions({
+                      ...options,
+                      metadataOverlay: { ...options.metadataOverlay, enabled: false }
+                    })}
+                    className={!options.metadataOverlay?.enabled ? 'active font-bold' : ''}
+                  >
+                    Off
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onChangeOptions({
+                      ...options,
+                      metadataOverlay: {
+                        enabled: true,
+                        position: options.metadataOverlay?.position || 'bottom-left',
+                        style: options.metadataOverlay?.style || 'dark',
+                        opacity: options.metadataOverlay?.opacity || 0.8,
+                        fontSize: options.metadataOverlay?.fontSize || 'small',
+                        customLabel: options.metadataOverlay?.customLabel || '',
+                        fields: options.metadataOverlay?.fields || {
+                          frameNumber: true,
+                          timecode: true,
+                          timestamp: false,
+                          filename: false,
+                          resolution: true,
+                          fps: true,
+                          sceneNumber: false,
+                          mode: false,
+                          customLabel: true,
+                        }
+                      }
+                    })}
+                    className={options.metadataOverlay?.enabled ? 'active font-bold' : ''}
+                  >
+                    On
+                  </button>
+                </div>
+              </div>
+
+              {/* Reveal Overlay Settings when Enabled */}
+              {options.metadataOverlay?.enabled && (
+                <div className="flex flex-col gap-3 pt-3 border-t border-[--border-subtle]">
+                  {/* Position & Style Controls */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] text-[--text-tertiary] uppercase mb-1">Position</label>
+                      <select
+                        value={options.metadataOverlay.position}
+                        onChange={(e) => onChangeOptions({
+                          ...options,
+                          metadataOverlay: { ...options.metadataOverlay, position: e.target.value as OverlayPosition }
+                        })}
+                        className="w-full px-2 py-1 rounded bg-[--bg-app] border border-[--border-subtle] text-[--text-primary]"
+                      >
+                        <option value="bottom-left">Bottom Left</option>
+                        <option value="bottom-center">Bottom Center</option>
+                        <option value="bottom-right">Bottom Right</option>
+                        <option value="top-left">Top Left</option>
+                        <option value="top-center">Top Center</option>
+                        <option value="top-right">Top Right</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] text-[--text-tertiary] uppercase mb-1">Style</label>
+                      <select
+                        value={options.metadataOverlay.style}
+                        onChange={(e) => onChangeOptions({
+                          ...options,
+                          metadataOverlay: { ...options.metadataOverlay, style: e.target.value as OverlayStyle }
+                        })}
+                        className="w-full px-2 py-1 rounded bg-[--bg-app] border border-[--border-subtle] text-[--text-primary]"
+                      >
+                        <option value="dark">Dark Label</option>
+                        <option value="light">Light Label</option>
+                        <option value="minimal">Minimal</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] text-[--text-tertiary] uppercase mb-1">Size</label>
+                      <select
+                        value={options.metadataOverlay.fontSize}
+                        onChange={(e) => onChangeOptions({
+                          ...options,
+                          metadataOverlay: { ...options.metadataOverlay, fontSize: e.target.value as OverlayFontSize }
+                        })}
+                        className="w-full px-2 py-1 rounded bg-[--bg-app] border border-[--border-subtle] text-[--text-primary]"
+                      >
+                        <option value="small">Small</option>
+                        <option value="medium">Medium</option>
+                        <option value="large">Large</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Custom Label Input */}
+                  <div>
+                    <label className="block text-[10px] text-[--text-tertiary] uppercase mb-1">Custom Label</label>
+                    <input
+                      type="text"
+                      value={options.metadataOverlay.customLabel || ''}
+                      onChange={(e) => onChangeOptions({
+                        ...options,
+                        metadataOverlay: { ...options.metadataOverlay, customLabel: e.target.value }
+                      })}
+                      placeholder="e.g. Animation Reference — Walk Cycle"
+                      className="w-full px-2.5 py-1 rounded bg-[--bg-app] border border-[--border-subtle] text-[--text-primary] text-xs font-mono"
+                    />
+                  </div>
+
+                  {/* Metadata Fields Checkboxes */}
+                  <div>
+                    <label className="block text-[10px] text-[--text-tertiary] uppercase mb-1.5">Displayed Fields</label>
+                    <div className="flex flex-wrap items-center gap-3 text-[11px]">
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={options.metadataOverlay.fields.frameNumber}
+                          onChange={(e) => onChangeOptions({
+                            ...options,
+                            metadataOverlay: {
+                              ...options.metadataOverlay,
+                              fields: { ...options.metadataOverlay.fields, frameNumber: e.target.checked }
+                            }
+                          })}
+                          className="custom-checkbox"
+                        />
+                        Frame Number
+                      </label>
+
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={options.metadataOverlay.fields.timecode}
+                          onChange={(e) => onChangeOptions({
+                            ...options,
+                            metadataOverlay: {
+                              ...options.metadataOverlay,
+                              fields: { ...options.metadataOverlay.fields, timecode: e.target.checked }
+                            }
+                          })}
+                          className="custom-checkbox"
+                        />
+                        Timecode
+                      </label>
+
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={options.metadataOverlay.fields.resolution}
+                          onChange={(e) => onChangeOptions({
+                            ...options,
+                            metadataOverlay: {
+                              ...options.metadataOverlay,
+                              fields: { ...options.metadataOverlay.fields, resolution: e.target.checked }
+                            }
+                          })}
+                          className="custom-checkbox"
+                        />
+                        Resolution
+                      </label>
+
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={options.metadataOverlay.fields.fps}
+                          onChange={(e) => onChangeOptions({
+                            ...options,
+                            metadataOverlay: {
+                              ...options.metadataOverlay,
+                              fields: { ...options.metadataOverlay.fields, fps: e.target.checked }
+                            }
+                          })}
+                          className="custom-checkbox"
+                        />
+                        FPS Rate
+                      </label>
+
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={options.metadataOverlay.fields.filename}
+                          onChange={(e) => onChangeOptions({
+                            ...options,
+                            metadataOverlay: {
+                              ...options.metadataOverlay,
+                              fields: { ...options.metadataOverlay.fields, filename: e.target.checked }
+                            }
+                          })}
+                          className="custom-checkbox"
+                        />
+                        Filename
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

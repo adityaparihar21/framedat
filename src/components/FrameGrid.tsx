@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import type { FrameData } from '../types';
 import { FrameCard } from './FrameCard';
 import { downloadFramesAsZip } from '../utils/zipGenerator';
-import { Download, Search, Split, Film, CheckSquare, Square } from 'lucide-react';
+import { Download, Search, Split, Film, CheckSquare, Square, Grid } from 'lucide-react';
 
 interface FrameGridProps {
   frames: FrameData[];
@@ -13,6 +13,7 @@ interface FrameGridProps {
   onOpenLightbox: (frame: FrameData) => void;
   onOpenCompareModal: () => void;
   onOpenGifExportModal: () => void;
+  onOpenContactSheetModal: () => void;
   videoName: string;
 }
 
@@ -25,6 +26,7 @@ export const FrameGrid: React.FC<FrameGridProps> = ({
   onOpenLightbox,
   onOpenCompareModal,
   onOpenGifExportModal,
+  onOpenContactSheetModal,
   videoName,
 }) => {
   const [filterSceneCutsOnly, setFilterSceneCutsOnly] = useState(false);
@@ -67,7 +69,7 @@ export const FrameGrid: React.FC<FrameGridProps> = ({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-[--border-subtle] pb-3 mb-4">
         <div className="flex items-center gap-2">
           <h3 className="font-bold text-sm text-[--text-primary]">
-            Extracted Frames
+            Extracted Frames Gallery
           </h3>
           <span className="font-mono text-xs text-[--text-tertiary] bg-[--bg-surface-2] px-2 py-0.5 rounded border border-[--border-subtle]">
             {frames.length}
@@ -76,6 +78,14 @@ export const FrameGrid: React.FC<FrameGridProps> = ({
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
+          <button
+            onClick={onOpenContactSheetModal}
+            className="btn btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5"
+          >
+            <Grid className="w-3.5 h-3.5 text-[--accent-blue]" />
+            <span>Contact Sheet</span>
+          </button>
+
           <button
             onClick={onOpenCompareModal}
             disabled={selectedCount < 2}

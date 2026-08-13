@@ -1,7 +1,51 @@
-import type { ExtractionOptions, FrameData, ExtractionProgress, VideoMetadata, ExportFormat } from '../types';
+import type { ExtractionOptions, FrameData, ExtractionProgress, VideoMetadata, ExportFormat, MetadataOverlayOptions } from '../types';
 import { formatSecondsToTimecode } from './videoMetadata';
 
 export type ProgressCallback = (progress: ExtractionProgress) => void;
+
+/**
+ * Parses smart filename template tokens reactively
+ */
+export function parseSmartFilenamePattern(
+  pattern: string,
+  videoName: string,
+  index: number,
+  timestamp: number,
+  format: ExportFormat,
+  options: Partial<ExtractionOptions>
+): string {
+  const baseName = videoName.replace(/\.[^/.]+$/, '');
+  const ext = format === 'jpeg' ? 'jpg' : format;
+  const startNum = options.startNumber !== undefined ? options.startNumber : 1;
+  const seqNum = startNum + index;
+  const padLength = options.zeroPad || 4;
+
+  const timeStr = formatSecondsToTimecode(timestamp).replace(/:/g, '-').replace(/\./g, '-');
+  const secondsStr = `${timestamp.toFixed(2)}s`;
+  const dateStr = new Date().toISOString().split('T')[0];
+  const sceneStr = '01';
+
+  let result = pattern || '{video}_frame_{####}.png';
+
+  // Replace {####}, {###}, {##}, {#}
+  result = result.replace(/\{(#+)\}/g, (_, hashes) => {
+    const len = hashes.length;
+    return seqNum.toString().padStart(len, '0');
+  });
+
+  result = result
+    .replace(/\{video\}/g, baseName)
+    .replace(/\{frame\}/g, seqNum.toString().padStart(padLength, '0'))
+    .replace(/\{index\}/g, seqNum.toString().padStart(padLength, '0'))
+    .replace(/\{timecode\}/g, timeStr)
+    .replace(/\{time\}/g, secondsStr)
+    .replace(/\{scene\}/g, sceneStr)
+    .replace(/\{date\}/g, dateStr);
+
+  // Clean double extensions if user typed extension in pattern
+  result = result.replace(/\.(png|jpg|jpeg|tiff|bmp)$/i, '');
+  return `${result}.${ext}`;
+}
 
 /**
  * Calculates timestamps to extract based on user selected mode & options
@@ -55,7 +99,7 @@ export function calculateTimestamps(metadata: VideoMetadata, options: Extraction
 }
 
 /**
- * Generates formatted filename according to user pattern
+ * Generates formatted filename according to smart pattern or standard presets
  */
 export function generateFilename(
   videoName: string,
@@ -64,10 +108,15 @@ export function generateFilename(
   format: ExportFormat,
   options: ExtractionOptions
 ): string {
+  if (options.namingPattern === 'smart_pattern' || options.namingTemplate) {
+    return parseSmartFilenamePattern(options.namingTemplate || '{video}_frame_{####}.png', videoName, index, timestamp, format, options);
+  }
+
   const baseName = videoName.replace(/\.[^/.]+$/, '');
   const ext = format === 'jpeg' ? 'jpg' : format;
   const padLength = options.zeroPad || 4;
-  const numStr = (index + 1).toString().padStart(padLength, '0');
+  const startNum = options.startNumber !== undefined ? options.startNumber : 1;
+  const numStr = (index + startNum).toString().padStart(padLength, '0');
 
   const timeStr = formatSecondsToTimecode(timestamp).replace(/:/g, '-').replace(/\./g, '-');
   const secondsStr = `${timestamp.toFixed(2)}s`;
@@ -85,6 +134,115 @@ export function generateFilename(
     default:
       return `${baseName}_frame_${numStr}.${ext}`;
   }
+}
+
+/**
+ * Draws technical metadata overlay onto canvas image if enabled
+ */
+export function drawMetadataOverlay(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  index: number,
+  timestamp: number,
+  videoName: string,
+  metadata: VideoMetadata,
+  overlay: MetadataOverlayOptions
+) {
+  if (!overlay.enabled) return;
+
+  const lines: string[] = [];
+  const fields = overlay.fields;
+
+  if (fields.customLabel && overlay.customLabel.trim()) {
+    lines.push(overlay.customLabel.trim());
+  }
+
+  const metaParts: string[] = [];
+  if (fields.frameNumber) metaParts.push(`Frame #${(index + 1).toString().padStart(4, '0')}`);
+  if (fields.timecode) metaParts.push(formatSecondsToTimecode(timestamp));
+  if (fields.timestamp) metaParts.push(`${timestamp.toFixed(2)}s`);
+  if (metaParts.length > 0) lines.push(metaParts.join(' • '));
+
+  const specParts: string[] = [];
+  if (fields.resolution) specParts.push(`${width}×${height}`);
+  if (fields.fps) specParts.push(`${metadata.fps} FPS`);
+  if (fields.filename) specParts.push(videoName);
+  if (specParts.length > 0) lines.push(specParts.join(' • '));
+
+  if (lines.length === 0) return;
+
+  // Font sizing
+  const baseSize = width > 1920 ? 24 : width > 1280 ? 18 : 14;
+  const scaleMult = overlay.fontSize === 'large' ? 1.4 : overlay.fontSize === 'small' ? 0.8 : 1.0;
+  const fontSize = Math.max(10, Math.round(baseSize * scaleMult));
+
+  ctx.save();
+  ctx.font = `600 ${fontSize}px "JetBrains Mono", monospace`;
+
+  // Measure text bounds
+  let maxLineWidth = 0;
+  lines.forEach((line) => {
+    const w = ctx.measureText(line).width;
+    if (w > maxLineWidth) maxLineWidth = w;
+  });
+
+  const padding = fontSize * 0.8;
+  const lineHeight = fontSize * 1.35;
+  const boxWidth = maxLineWidth + padding * 2;
+  const boxHeight = lines.length * lineHeight + padding * 1.5;
+
+  const margin = Math.max(12, Math.round(width * 0.02));
+  let x = margin;
+  let y = margin;
+
+  if (overlay.position.includes('center')) {
+    x = (width - boxWidth) / 2;
+  } else if (overlay.position.includes('right')) {
+    x = width - boxWidth - margin;
+  }
+
+  if (overlay.position.includes('bottom')) {
+    y = height - boxHeight - margin;
+  }
+
+  // Draw background box based on style
+  const opacity = Math.min(1.0, Math.max(0.1, overlay.opacity || 0.8));
+  if (overlay.style === 'dark') {
+    ctx.fillStyle = `rgba(12, 15, 22, ${opacity})`;
+    ctx.strokeStyle = `rgba(255, 255, 255, ${0.15 * opacity})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(x, y, boxWidth, boxHeight, 6);
+    ctx.fill();
+    ctx.stroke();
+  } else if (overlay.style === 'light') {
+    ctx.fillStyle = `rgba(245, 247, 250, ${opacity})`;
+    ctx.strokeStyle = `rgba(0, 0, 0, ${0.15 * opacity})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(x, y, boxWidth, boxHeight, 6);
+    ctx.fill();
+    ctx.stroke();
+  } else if (overlay.style === 'minimal') {
+    // Subtle drop shadow behind minimal text
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+  }
+
+  // Text color
+  ctx.fillStyle = overlay.style === 'light' ? '#0f172a' : '#f8fafc';
+  ctx.textBaseline = 'top';
+
+  lines.forEach((line, i) => {
+    const lineX = overlay.style === 'minimal' ? x : x + padding;
+    const lineY = overlay.style === 'minimal' ? y + i * lineHeight : y + padding + i * lineHeight;
+    ctx.fillText(line, lineX, lineY);
+  });
+
+  ctx.restore();
 }
 
 /**
@@ -132,7 +290,7 @@ export async function extractFrames(
       video.onloadeddata = onLoaded;
       video.onloadedmetadata = onLoaded;
       video.onerror = () => reject(new Error('Failed to load video file.'));
-      setTimeout(resolve, 3000); // Failsafe fallback
+      setTimeout(resolve, 3000);
     }
   });
 
@@ -149,8 +307,22 @@ export async function extractFrames(
     // Seek precisely to target timestamp
     await seekToTimestamp(video, t);
 
-    // Draw video frame losslessly at full target resolution
+    // Draw raw video frame
     ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+
+    // Optionally apply Metadata Overlay if enabled
+    if (options.metadataOverlay?.enabled) {
+      drawMetadataOverlay(
+        ctx,
+        targetWidth,
+        targetHeight,
+        i,
+        t,
+        metadata.name,
+        metadata,
+        options.metadataOverlay
+      );
+    }
 
     // Convert canvas content to target format Blob
     const mimeType = getMimeTypeForFormat(options.format);
@@ -222,8 +394,6 @@ function seekToTimestamp(video: HTMLVideoElement, targetTime: number): Promise<v
 
     video.addEventListener('seeked', onSeeked);
     video.currentTime = targetTime;
-
-    // Failsafe timeout in case seeked event is delayed
     setTimeout(finish, 300);
   });
 }
@@ -250,7 +420,6 @@ function canvasToBlob(canvas: HTMLCanvasElement, mimeType: string, quality: numb
           if (blob) {
             resolve(blob);
           } else {
-            // Safari fallback: if requested format (tiff/bmp) returns null, fallback to image/png
             canvas.toBlob((fallbackBlob) => {
               if (fallbackBlob) resolve(fallbackBlob);
               else reject(new Error('Canvas blob conversion failed'));

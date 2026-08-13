@@ -13,6 +13,7 @@ import { FrameGrid } from './components/FrameGrid';
 import { LightboxModal } from './components/LightboxModal';
 import { CompareModal } from './components/CompareModal';
 import { GifExportModal } from './components/GifExportModal';
+import { ContactSheetModal } from './components/ContactSheetModal';
 import { Footer } from './components/Footer';
 
 import type { VideoMetadata, ExtractionOptions, FrameData, ExtractionProgress } from './types';
@@ -35,11 +36,32 @@ export const App: React.FC = () => {
     endTime: 0,
     format: 'png',
     jpegQuality: 0.95,
-    namingPattern: 'frame_number',
+    namingPattern: 'smart_pattern',
+    namingTemplate: '{video}_frame_{####}.png',
     customPrefix: 'frame',
+    startNumber: 1,
     scaleRatio: 1.0,
     engine: 'browser',
     zeroPad: 4,
+    metadataOverlay: {
+      enabled: false,
+      position: 'bottom-left',
+      style: 'dark',
+      opacity: 0.8,
+      fontSize: 'small',
+      customLabel: '',
+      fields: {
+        frameNumber: true,
+        timecode: true,
+        timestamp: false,
+        filename: false,
+        resolution: true,
+        fps: true,
+        sceneNumber: false,
+        mode: false,
+        customLabel: true,
+      },
+    },
   });
 
   const [isExtracting, setIsExtracting] = useState(false);
@@ -57,6 +79,7 @@ export const App: React.FC = () => {
   const [lightboxFrame, setLightboxFrame] = useState<FrameData | null>(null);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [isGifExportOpen, setIsGifExportOpen] = useState(false);
+  const [isContactSheetOpen, setIsContactSheetOpen] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const lastSelectedFrameIdRef = useRef<string | null>(null);
@@ -80,6 +103,7 @@ export const App: React.FC = () => {
     setLightboxFrame(null);
     setIsCompareOpen(false);
     setIsGifExportOpen(false);
+    setIsContactSheetOpen(false);
   };
 
   const handleFileSelect = async (file: File) => {
@@ -219,7 +243,7 @@ export const App: React.FC = () => {
             isLoadingSample={isLoadingSample || isLoadingMetadata}
           />
         ) : (
-          /* STATE 2: 01 TRIM -> 02 METHOD -> PREVIEW -> EXTRACT -> 03 REVIEW -> 04 DOWNLOAD */
+          /* STATE 2: SEQUENTIAL WORKFLOW */
           <div className="page-container">
             <MetadataBar metadata={metadata} />
 
@@ -231,7 +255,7 @@ export const App: React.FC = () => {
               onSnapshotFrame={handleSnapshotSingleFrame}
             />
 
-            {/* 02 — CHOOSE EXTRACTION */}
+            {/* 02 — CHOOSE EXTRACTION & ADVANCED EXPORT OPTIONS */}
             <ExtractionSettings
               metadata={metadata}
               options={options}
@@ -250,17 +274,18 @@ export const App: React.FC = () => {
               <ProgressBar progress={progress} onCancel={handleCancelExtraction} />
             )}
 
-            {/* 03 — FINAL REVIEW PLAYER & 04 — DOWNLOAD SECTION (Rendered after extraction) */}
+            {/* 03 — FINAL REVIEW PLAYER & 04 — DOWNLOAD SECTION */}
             {frames.length > 0 && (
               <>
                 <FinalReviewPlayer
                   frames={frames}
-                  videoName={metadata.name}
+                  onOpenContactSheetModal={() => setIsContactSheetOpen(true)}
                 />
 
                 <DownloadSection
                   frames={frames}
                   videoName={metadata.name}
+                  onOpenContactSheetModal={() => setIsContactSheetOpen(true)}
                 />
 
                 <FrameGrid
@@ -272,6 +297,7 @@ export const App: React.FC = () => {
                   onOpenLightbox={(frame) => setLightboxFrame(frame)}
                   onOpenCompareModal={() => setIsCompareOpen(true)}
                   onOpenGifExportModal={() => setIsGifExportOpen(true)}
+                  onOpenContactSheetModal={() => setIsContactSheetOpen(true)}
                   videoName={metadata.name}
                 />
               </>
@@ -299,6 +325,14 @@ export const App: React.FC = () => {
           selectedFrames={selectedFrames.length > 0 ? selectedFrames : frames}
           videoName={metadata ? metadata.name : 'video'}
           onClose={() => setIsGifExportOpen(false)}
+        />
+      )}
+
+      {isContactSheetOpen && (
+        <ContactSheetModal
+          frames={frames}
+          videoName={metadata ? metadata.name : 'video'}
+          onClose={() => setIsContactSheetOpen(false)}
         />
       )}
 

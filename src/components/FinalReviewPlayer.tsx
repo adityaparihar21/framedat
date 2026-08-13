@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { FrameData } from '../types';
-import { Play, Pause, ChevronLeft, ChevronRight, Film } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronRight, Film, Grid } from 'lucide-react';
 
 interface FinalReviewPlayerProps {
   frames: FrameData[];
-  videoName: string;
+  onOpenContactSheetModal: () => void;
 }
 
-export const FinalReviewPlayer: React.FC<FinalReviewPlayerProps> = ({ frames }) => {
+export const FinalReviewPlayer: React.FC<FinalReviewPlayerProps> = ({
+  frames,
+  onOpenContactSheetModal,
+}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [speedMultiplier, setSpeedMultiplier] = useState<number>(1.0);
@@ -52,8 +55,18 @@ export const FinalReviewPlayer: React.FC<FinalReviewPlayerProps> = ({ frames }) 
         <span className="text-[11px] font-mono text-[--text-tertiary] uppercase tracking-wider">
           03 — FINAL REVIEW
         </span>
-        <div className="text-xs font-mono text-[--text-secondary]">
-          <span>{totalFrames} extracted frames  •  {currentFrame.width} × {currentFrame.height}  •  {currentFrame.format.toUpperCase()}</span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onOpenContactSheetModal}
+            className="btn btn-secondary text-xs py-1 px-3 flex items-center gap-1.5 font-mono"
+          >
+            <Grid className="w-3.5 h-3.5 text-[--accent-blue]" />
+            <span>Create Contact Sheet</span>
+          </button>
+
+          <div className="text-xs font-mono text-[--text-secondary]">
+            <span>{totalFrames} extracted frames  •  {currentFrame.width} × {currentFrame.height}  •  {currentFrame.format.toUpperCase()}</span>
+          </div>
         </div>
       </div>
 

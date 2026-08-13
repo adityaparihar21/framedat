@@ -2,14 +2,19 @@ import React, { useState } from 'react';
 import type { FrameData } from '../types';
 import { downloadFramesAsZip } from '../utils/zipGenerator';
 import { formatBytes } from '../utils/videoMetadata';
-import { Download, CheckCircle2 } from 'lucide-react';
+import { Download, CheckCircle2, Grid } from 'lucide-react';
 
 interface DownloadSectionProps {
   frames: FrameData[];
   videoName: string;
+  onOpenContactSheetModal: () => void;
 }
 
-export const DownloadSection: React.FC<DownloadSectionProps> = ({ frames, videoName }) => {
+export const DownloadSection: React.FC<DownloadSectionProps> = ({
+  frames,
+  videoName,
+  onOpenContactSheetModal,
+}) => {
   const [isZipping, setIsZipping] = useState(false);
   const [zipProgress, setZipProgress] = useState(0);
 
@@ -58,16 +63,26 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({ frames, videoN
           </div>
         </div>
 
-        <button
-          onClick={handleDownload}
-          disabled={isZipping}
-          className="btn btn-primary text-xs py-2.5 px-6 font-mono font-bold shrink-0 shadow-lg shadow-[--accent-blue]/20"
-        >
-          <Download className="w-4 h-4" />
-          <span>
-            {isZipping ? `Zipping (${zipProgress}%)...` : `Download ${count} Frames (.ZIP)`}
-          </span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onOpenContactSheetModal}
+            className="btn btn-secondary text-xs py-2 px-4 font-mono font-semibold"
+          >
+            <Grid className="w-3.5 h-3.5 text-[--accent-blue]" />
+            <span>Create Contact Sheet</span>
+          </button>
+
+          <button
+            onClick={handleDownload}
+            disabled={isZipping}
+            className="btn btn-primary text-xs py-2.5 px-6 font-mono font-bold shrink-0 shadow-lg shadow-[--accent-blue]/20"
+          >
+            <Download className="w-4 h-4" />
+            <span>
+              {isZipping ? `Zipping (${zipProgress}%)...` : `Download ${count} Frames (.ZIP)`}
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   );

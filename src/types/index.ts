@@ -6,7 +6,42 @@ export type NamingPattern =
   | 'frame_number'    // video_frame_0001.png
   | 'timestamp'       // video_00-01-23-450.png
   | 'seconds'         // video_75.45s.png
-  | 'custom_prefix';  // custom_0001.png
+  | 'custom_prefix'   // custom_0001.png
+  | 'smart_pattern';  // {video}_frame_{####}.png
+
+export type OverlayPosition = 
+  | 'bottom-left' 
+  | 'bottom-center' 
+  | 'bottom-right' 
+  | 'top-left' 
+  | 'top-center' 
+  | 'top-right';
+
+export type OverlayStyle = 'minimal' | 'dark' | 'light';
+
+export type OverlayFontSize = 'small' | 'medium' | 'large';
+
+export interface OverlayFields {
+  frameNumber: boolean;
+  timecode: boolean;
+  timestamp: boolean;
+  filename: boolean;
+  resolution: boolean;
+  fps: boolean;
+  sceneNumber: boolean;
+  mode: boolean;
+  customLabel: boolean;
+}
+
+export interface MetadataOverlayOptions {
+  enabled: boolean;
+  position: OverlayPosition;
+  style: OverlayStyle;
+  opacity: number; // 0.1 to 1.0 (default 0.8)
+  fontSize: OverlayFontSize;
+  customLabel: string;
+  fields: OverlayFields;
+}
 
 export interface VideoMetadata {
   name: string;
@@ -14,7 +49,7 @@ export interface VideoMetadata {
   formattedSize: string;
   width: number;
   height: number;
-  resolutionLabel: string; // e.g. "4K (3840x2160)" or "1080p (1920x1080)"
+  resolutionLabel: string;
   duration: number; // in seconds
   formattedDuration: string; // MM:SS.ms
   fps: number;
@@ -27,18 +62,18 @@ export interface VideoMetadata {
 
 export interface FrameData {
   id: string;
-  index: number; // 0-based or 1-based frame index
-  timestamp: number; // time in seconds
-  timeString: string; // HH:MM:SS.mmm
+  index: number;
+  timestamp: number;
+  timeString: string;
   blob: Blob;
-  url: string; // Blob URL for thumbnail preview
+  url: string;
   width: number;
   height: number;
   sizeBytes: number;
   selected: boolean;
   format: ExportFormat;
   filename: string;
-  sceneChangeScore?: number; // 0 to 1, higher means scene cut
+  sceneChangeScore?: number;
   isKeyframeCandidate?: boolean;
   isDuplicate?: boolean;
 }
@@ -52,10 +87,13 @@ export interface ExtractionOptions {
   format: ExportFormat;
   jpegQuality: number; // 0.01 to 1.0 (for JPEG mode)
   namingPattern: NamingPattern;
+  namingTemplate: string; // e.g. "{video}_frame_{####}.png"
   customPrefix: string;
+  startNumber: number; // default 1
+  zeroPad: number; // padding for sequence numbers, default 4
   scaleRatio: number; // 1.0 = native source resolution (default), 0.75, 0.5
   engine: 'browser' | 'ffmpeg';
-  zeroPad: number; // padding for sequence numbers, default 4
+  metadataOverlay: MetadataOverlayOptions;
 }
 
 export interface ExtractionProgress {
@@ -63,7 +101,7 @@ export interface ExtractionProgress {
   currentFrame: number;
   totalFrames: number;
   percentage: number;
-  fpsSpeed: number; // frames per second processing rate
+  fpsSpeed: number;
   elapsedTimeMs: number;
   estimatedTimeRemainingMs: number;
   errorMessage?: string;
@@ -72,4 +110,14 @@ export interface ExtractionProgress {
 export interface ComparePair {
   frameA: FrameData;
   frameB: FrameData;
+}
+
+export interface ContactSheetOptions {
+  columns: number; // 3, 4, 5, 6 (default 4)
+  format: 'png' | 'jpeg';
+  scaleRatio: number; // 1.0 = Native, 2.0 = 2x
+  showFrameNumber: boolean;
+  showTimecode: boolean;
+  showFilename: boolean;
+  namingTemplate: string; // e.g. "{video}_contact_sheet.png"
 }
