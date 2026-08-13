@@ -1,6 +1,6 @@
 /**
- * High-end synthesized Web Audio sound engine for framedat cinematic intro
- * 100% offline, zero external dependencies, 48kHz pristine audio.
+ * Apple & Google Gemini style refined audio engine for framedat intro.
+ * Features ultra-subtle haptic micro-taps and soft warm ambient harmonics.
  */
 
 class IntroSoundEngine {
@@ -14,7 +14,7 @@ class IntroSoundEngine {
       if (AudioCtx) {
         this.ctx = new AudioCtx();
         this.masterGain = this.ctx.createGain();
-        this.masterGain.gain.value = 0.35; // Comfortable volume level
+        this.masterGain.gain.value = 0.25; // Subtle master volume level
         this.masterGain.connect(this.ctx.destination);
       }
     }
@@ -26,7 +26,7 @@ class IntroSoundEngine {
   public setMuted(muted: boolean) {
     this.isMuted = muted;
     if (this.masterGain && this.ctx) {
-      this.masterGain.gain.setValueAtTime(muted ? 0 : 0.35, this.ctx.currentTime);
+      this.masterGain.gain.setValueAtTime(muted ? 0 : 0.25, this.ctx.currentTime);
     }
   }
 
@@ -35,44 +35,49 @@ class IntroSoundEngine {
   }
 
   /**
-   * Deep low ambient film drone on intro start
+   * Soft warm ambient harmonic pad (Apple Keynote / Google Gemini style)
    */
-  public playAmbientDrone(durationSec: number = 5.5) {
+  public playWarmAmbientPad(durationSec: number = 7.0) {
     if (this.isMuted) return;
     this.initCtx();
     if (!this.ctx || !this.masterGain) return;
 
     try {
-      const osc = this.ctx.createOscillator();
+      const now = this.ctx.currentTime;
+      const osc1 = this.ctx.createOscillator();
+      const osc2 = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       const filter = this.ctx.createBiquadFilter();
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(55, this.ctx.currentTime); // Sub-A (55Hz)
-      osc.frequency.exponentialRampToValueAtTime(45, this.ctx.currentTime + durationSec);
+      osc1.type = 'sine';
+      osc2.type = 'sine';
+      osc1.frequency.setValueAtTime(130.81, now); // C3 (warm chord)
+      osc2.frequency.setValueAtTime(196.00, now); // G3
 
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(120, this.ctx.currentTime);
+      filter.frequency.setValueAtTime(280, now);
 
-      const now = this.ctx.currentTime;
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.25, now + 1.0);
-      gain.gain.linearRampToValueAtTime(0.2, now + durationSec - 1.0);
+      gain.gain.linearRampToValueAtTime(0.04, now + 1.2);
+      gain.gain.linearRampToValueAtTime(0.03, now + durationSec - 1.2);
       gain.gain.exponentialRampToValueAtTime(0.001, now + durationSec);
 
-      osc.connect(filter);
+      osc1.connect(filter);
+      osc2.connect(filter);
       filter.connect(gain);
       gain.connect(this.masterGain);
 
-      osc.start(now);
-      osc.stop(now + durationSec);
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + durationSec);
+      osc2.stop(now + durationSec);
     } catch {}
   }
 
   /**
-   * Crisp precision camera tick for frame steps & phrase reveals
+   * Apple Taptic Engine / macOS style micro-click haptic tap
    */
-  public playFrameTick(frequency: number = 800) {
+  public playHapticTap() {
     if (this.isMuted) return;
     this.initCtx();
     if (!this.ctx || !this.masterGain) return;
@@ -82,55 +87,55 @@ class IntroSoundEngine {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(frequency, now);
-      osc.frequency.exponentialRampToValueAtTime(120, now + 0.04);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1800, now);
+      osc.frequency.exponentialRampToValueAtTime(400, now + 0.008);
 
-      gain.gain.setValueAtTime(0.18, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      gain.gain.setValueAtTime(0.05, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.008);
 
       osc.connect(gain);
       gain.connect(this.masterGain);
 
       osc.start(now);
-      osc.stop(now + 0.04);
+      osc.stop(now + 0.008);
     } catch {}
   }
 
   /**
-   * Harmonic chime at title reveal
+   * Refined glass bell chime for title reveal (Apple product intro style)
    */
-  public playTitleBloom() {
+  public playSubtleChime() {
     if (this.isMuted) return;
     this.initCtx();
     if (!this.ctx || !this.masterGain) return;
 
     try {
       const now = this.ctx.currentTime;
-      [220, 330, 440, 660].forEach((freq, i) => {
+      [523.25, 659.25, 783.99].forEach((freq, i) => { // C5, E5, G5 triad
         const osc = this.ctx!.createOscillator();
         const gain = this.ctx!.createGain();
 
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, now + i * 0.05);
+        osc.frequency.setValueAtTime(freq, now + i * 0.06);
 
-        gain.gain.setValueAtTime(0.001, now + i * 0.05);
-        gain.gain.linearRampToValueAtTime(0.12, now + i * 0.05 + 0.08);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 1.2);
+        gain.gain.setValueAtTime(0.001, now + i * 0.06);
+        gain.gain.linearRampToValueAtTime(0.04, now + i * 0.06 + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.8);
 
         osc.connect(gain);
         gain.connect(this.masterGain!);
 
-        osc.start(now + i * 0.05);
-        osc.stop(now + i * 0.05 + 1.2);
+        osc.start(now + i * 0.06);
+        osc.stop(now + i * 0.06 + 0.8);
       });
     } catch {}
   }
 
   /**
-   * Smooth morph swoosh transition into upload surface
+   * Soft organic transition swell (No harsh risers or noise)
    */
-  public playMorphSwoosh() {
+  public playSoftTransitionSwell() {
     if (this.isMuted) return;
     this.initCtx();
     if (!this.ctx || !this.masterGain) return;
@@ -141,24 +146,23 @@ class IntroSoundEngine {
       const gain = this.ctx.createGain();
       const filter = this.ctx.createBiquadFilter();
 
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(110, now);
-      osc.frequency.exponentialRampToValueAtTime(220, now + 0.6);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.exponentialRampToValueAtTime(260, now + 0.5);
 
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(200, now);
-      filter.frequency.exponentialRampToValueAtTime(800, now + 0.6);
+      filter.frequency.setValueAtTime(300, now);
 
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.15, now + 0.2);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+      gain.gain.linearRampToValueAtTime(0.03, now + 0.2);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
 
       osc.connect(filter);
       filter.connect(gain);
       gain.connect(this.masterGain);
 
       osc.start(now);
-      osc.stop(now + 0.8);
+      osc.stop(now + 0.5);
     } catch {}
   }
 

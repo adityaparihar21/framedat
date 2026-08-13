@@ -35,7 +35,7 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Main cinematic timeline sequence + Sound triggers
+  // Main cinematic timeline sequence + Apple / Google Gemini style Sound triggers
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
@@ -43,50 +43,50 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
       return;
     }
 
-    // Play initial subtle ambient drone
-    introSound.playAmbientDrone(7.2);
+    // Play subtle soft warm ambient pad
+    introSound.playWarmAmbientPad(7.2);
 
     const t1 = setTimeout(() => {
       setPhase('every_moment');
-      introSound.playFrameTick(600);
+      introSound.playHapticTap();
     }, 500);
 
     const t2 = setTimeout(() => {
       setPhase('has_a_frame');
-      introSound.playFrameTick(700);
+      introSound.playHapticTap();
     }, 1300);
 
     const t3 = setTimeout(() => {
       setPhase('find_it');
       setPlayheadPos(30);
-      introSound.playFrameTick(800);
+      introSound.playHapticTap();
     }, 2000);
 
     const t4 = setTimeout(() => {
       setPhase('extract_it');
       setPlayheadPos(55);
-      introSound.playFrameTick(900);
+      introSound.playHapticTap();
     }, 2600);
 
     const t5 = setTimeout(() => {
       setPhase('review_it');
       setPlayheadPos(75);
-      introSound.playFrameTick(1000);
+      introSound.playHapticTap();
     }, 3200);
 
     const t6 = setTimeout(() => {
       setPhase('keep_it');
-      introSound.playFrameTick(1100);
+      introSound.playHapticTap();
     }, 3800);
 
     const t7 = setTimeout(() => {
       setPhase('title_reveal');
-      introSound.playTitleBloom();
+      introSound.playSubtleChime();
     }, 4400);
 
     const t8 = setTimeout(() => {
       setPhase('morph_uploader');
-      introSound.playMorphSwoosh();
+      introSound.playSoftTransitionSwell();
     }, 5400);
 
     const t9 = setTimeout(() => {
@@ -162,10 +162,10 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
         </button>
       </div>
 
-      {/* Main Motion Composition Center — EXACT MATCH TO HOMEPAGE LAYOUT */}
+      {/* Main Motion Composition Center */}
       <div className="w-full max-w-lg mx-auto flex flex-col items-center justify-center text-center my-auto px-4">
         
-        {/* HEADING BLOCK — IDENTICAL TO HOMEPAGE DROPZONE */}
+        {/* HEADING BLOCK — MATCHED TO HOMEPAGE DROPZONE */}
         <div className="mb-14 sm:mb-16 min-h-[72px] flex flex-col items-center justify-center">
           {phase === 'every_moment' && (
             <div className="text-2xl sm:text-4xl font-extrabold text-[--text-primary] tracking-tight animate-horizontal-reveal font-sans">
@@ -235,14 +235,16 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
                 style={{ left: `${playheadPos}%` }}
               />
 
-              {/* Monospace Frame Sequence Numbers — Visible from initial phase */}
-              <div className="absolute top-[-16px] left-0 right-0 flex justify-between px-2 text-[9px] font-mono transition-opacity duration-300">
-                <span className={playheadPos >= 10 && playheadPos < 25 ? 'text-[--accent-blue] font-bold' : 'text-[--text-tertiary]'}>001</span>
-                <span className={playheadPos >= 25 && playheadPos < 45 ? 'text-[--accent-blue] font-bold' : 'text-[--text-tertiary]'}>002</span>
-                <span className={playheadPos >= 45 && playheadPos < 65 ? 'text-[--accent-blue] font-bold' : 'text-[--text-tertiary]'}>003</span>
-                <span className={playheadPos >= 65 && playheadPos < 85 ? 'text-[--accent-blue] font-bold' : 'text-[--text-tertiary]'}>004</span>
-                <span className={playheadPos >= 85 ? 'text-[--accent-blue] font-bold' : 'text-[--text-tertiary]'}>005</span>
-              </div>
+              {/* Frame Sequence Numbers — Reveals during extract/review phase */}
+              {(phase === 'extract_it' || phase === 'review_it' || phase === 'keep_it') && (
+                <div className="absolute top-[-16px] left-0 right-0 flex justify-between px-2 text-[9px] font-mono text-[--text-tertiary] animate-fadeIn">
+                  <span>001</span>
+                  <span>002</span>
+                  <span>003</span>
+                  <span>004</span>
+                  <span>005</span>
+                </div>
+              )}
             </div>
           ) : (
             /* IDENTICAL MATCH TO HOMEPAGE DROPZONE BOX */
