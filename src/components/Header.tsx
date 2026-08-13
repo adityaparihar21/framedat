@@ -1,7 +1,7 @@
 import React from 'react';
 import { SlidersHorizontal, Settings, Film, RefreshCw } from 'lucide-react';
 
-export type AppToolMode = 'extractor' | 'bg_remover' | 'assets' | 'settings';
+export type AppToolMode = 'extractor' | 'audio_cleaner' | 'bitmap_ascii' | 'assets' | 'settings';
 
 interface HeaderProps {
   theme: 'dark' | 'light';
@@ -27,9 +27,8 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="border-b border-[--border-subtle] bg-[#08090C]/90 backdrop-blur-md px-4 sm:px-8 py-3.5 transition-colors select-none sticky top-0 z-50">
       <div className="max-w-[1200px] mx-auto flex items-center justify-between">
-        {/* Left: Brand Logo & Navigation (Section 2 Directive) */}
-        <div className="flex items-center gap-8 sm:gap-12">
-          {/* Logo with strong visual weight */}
+        {/* Left: Brand Logo & Navigation */}
+        <div className="flex items-center gap-8 sm:gap-10">
           <div className="flex items-center gap-2 cursor-pointer group" onClick={onReset}>
             <span className="font-extrabold text-lg sm:text-xl tracking-tight text-[--text-primary] font-sans group-hover:text-[--accent-blue] transition-colors">
               framedat
@@ -39,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           </div>
 
-          {/* Understated Professional Nav Items */}
+          {/* Understated Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-7 font-sans text-xs">
             <button
               onClick={() => onChangeToolMode('extractor')}
@@ -52,14 +51,24 @@ export const Header: React.FC<HeaderProps> = ({
               Extractor
             </button>
             <button
-              onClick={() => onChangeToolMode('bg_remover')}
+              onClick={() => onChangeToolMode('audio_cleaner')}
               className={`py-1 transition-all relative ${
-                toolMode === 'bg_remover'
+                toolMode === 'audio_cleaner'
                   ? 'text-[--text-primary] font-semibold border-b-2 border-[--accent-blue]'
                   : 'text-[--text-secondary] hover:text-[--text-primary]'
               }`}
             >
-              Studio
+              Audio Cleaner
+            </button>
+            <button
+              onClick={() => onChangeToolMode('bitmap_ascii')}
+              className={`py-1 transition-all relative ${
+                toolMode === 'bitmap_ascii'
+                  ? 'text-[--text-primary] font-semibold border-b-2 border-[--accent-blue]'
+                  : 'text-[--text-secondary] hover:text-[--text-primary]'
+              }`}
+            >
+              Bitmap & ASCII
             </button>
             <button
               onClick={() => onChangeToolMode('assets')}
@@ -84,9 +93,8 @@ export const Header: React.FC<HeaderProps> = ({
           </nav>
         </div>
 
-        {/* Right: Reassuring Product Status & Actions */}
+        {/* Right Controls */}
         <div className="flex items-center gap-3 sm:gap-4">
-          {/* Reassuring Product Status Dot with Tooltip */}
           <div
             className="hidden sm:flex items-center gap-2 text-xs text-[--text-secondary] font-sans relative group cursor-help px-2 py-1 rounded hover:bg-[--bg-surface-2] transition-colors"
             title="Your files stay on your device. Zero cloud uploads."
@@ -96,11 +104,6 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             <span className="font-medium text-[11px] text-[--text-secondary]">Local processing</span>
-
-            {/* Subtle Hover Tooltip */}
-            <div className="absolute right-0 top-full mt-1.5 hidden group-hover:block bg-[--bg-surface-3] text-[--text-primary] text-[11px] font-sans px-2.5 py-1 rounded shadow-xl border border-[--border-subtle] whitespace-nowrap z-50">
-              Your files stay on your device.
-            </div>
           </div>
 
           {!hasVideo && onReplayIntro && toolMode === 'extractor' && (
@@ -125,7 +128,6 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Export Button (Active inside workspace) */}
           {onExportAction && (
             <button
               onClick={onExportAction}
@@ -135,7 +137,6 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Settings / Theme Toggle Button */}
           <button
             onClick={onToggleTheme}
             className="w-8 h-8 rounded-lg bg-[--bg-surface-2] border border-[--border-subtle] flex items-center justify-center hover:bg-[--bg-surface-3] text-[--text-secondary] hover:text-[--text-primary] transition-all"

@@ -14,11 +14,12 @@ import { LightboxModal } from './components/LightboxModal';
 import { CompareModal } from './components/CompareModal';
 import { GifExportModal } from './components/GifExportModal';
 import { ContactSheetModal } from './components/ContactSheetModal';
-import { BackgroundRemover } from './components/BackgroundRemover';
+import { AudioCleaner } from './components/AudioCleaner';
+import { BitmapAsciiStudio } from './components/BitmapAsciiStudio';
 import { CinematicIntro } from './components/CinematicIntro';
 import { ToastContainer, type ToastMessage } from './components/Toast';
 import { Footer } from './components/Footer';
-import { Video, Scissors, History } from 'lucide-react';
+import { Video, Mic, Grid } from 'lucide-react';
 
 import type { VideoMetadata, ExtractionOptions, FrameData, ExtractionProgress } from './types';
 import { detectVideoMetadata } from './utils/videoMetadata';
@@ -29,7 +30,7 @@ import { createDemoVideoFile } from './utils/sampleVideo';
 export const App: React.FC = () => {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [toolMode, setToolMode] = useState<AppToolMode>('extractor');
-  const [bgRemoverInitialBlob, setBgRemoverInitialBlob] = useState<Blob | null>(null);
+  const [bitmapStudioInitialBlob, setBitmapStudioInitialBlob] = useState<Blob | null>(null);
 
   const [metadata, setMetadata] = useState<VideoMetadata | null>(null);
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
@@ -272,23 +273,26 @@ export const App: React.FC = () => {
       />
 
       <main className={`flex-1 w-full flex flex-col ${toolMode === 'extractor' && !metadata ? 'items-center justify-center my-auto min-h-[calc(100vh-140px)]' : 'py-6 sm:py-8'}`}>
-        {toolMode === 'bg_remover' ? (
-          /* BACKGROUND REMOVER STUDIO TOOL */
-          <BackgroundRemover
-            initialImageBlob={bgRemoverInitialBlob}
-            onBackToExtractor={() => setToolMode('extractor')}
+        {toolMode === 'audio_cleaner' ? (
+          /* AUDIO NOISE CLEANER STUDIO */
+          <AudioCleaner onShowToast={showToast} />
+        ) : toolMode === 'bitmap_ascii' ? (
+          /* BITMAP & ASCII ART STUDIO */
+          <BitmapAsciiStudio
+            initialImageBlob={bitmapStudioInitialBlob}
             onShowToast={showToast}
           />
         ) : !metadata ? (
-          /* STATE 1: PERFECTLY CENTERED ELEGANT DROPZONE */
+          /* LANDING WORKSPACE */
           <Dropzone
             onFileSelect={handleFileSelect}
             onSelectSampleVideo={handleSelectSampleVideo}
-            onOpenBackgroundRemover={() => setToolMode('bg_remover')}
+            onOpenAudioCleaner={() => setToolMode('audio_cleaner')}
+            onOpenBitmapAscii={() => setToolMode('bitmap_ascii')}
             isLoadingSample={isLoadingSample || isLoadingMetadata}
           />
         ) : (
-          /* STATE 2: SEQUENTIAL WORKFLOW */
+          /* WORKSPACE STREAM */
           <div className="page-container">
             <MetadataBar metadata={metadata} />
 
@@ -344,8 +348,8 @@ export const App: React.FC = () => {
                   onOpenGifExportModal={() => setIsGifExportOpen(true)}
                   onOpenContactSheetModal={() => setIsContactSheetOpen(true)}
                   onRemoveFrameBackground={(blob) => {
-                    setBgRemoverInitialBlob(blob);
-                    setToolMode('bg_remover');
+                    setBitmapStudioInitialBlob(blob);
+                    setToolMode('bitmap_ascii');
                   }}
                   videoName={metadata.name}
                 />
@@ -387,11 +391,11 @@ export const App: React.FC = () => {
 
       <ToastContainer toasts={toasts} onDismiss={handleDismissToast} />
 
-      {/* MOBILE BOTTOM NAVIGATION BAR (Matching Image 2 UI) */}
+      {/* MOBILE BOTTOM NAVIGATION BAR */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#090B10]/95 backdrop-blur-md border-t border-[--border-subtle] px-4 py-2 flex items-center justify-around font-mono text-[11px]">
         <button
           onClick={() => setToolMode('extractor')}
-          className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-xl transition-all ${
+          className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all ${
             toolMode === 'extractor'
               ? 'bg-[--accent-blue] text-white font-bold'
               : 'text-[--text-secondary] hover:text-[--text-primary]'
@@ -402,27 +406,27 @@ export const App: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setToolMode('bg_remover')}
-          className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-xl transition-all ${
-            toolMode === 'bg_remover'
+          onClick={() => setToolMode('audio_cleaner')}
+          className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all ${
+            toolMode === 'audio_cleaner'
               ? 'bg-[--accent-blue] text-white font-bold'
               : 'text-[--text-secondary] hover:text-[--text-primary]'
           }`}
         >
-          <Scissors className="w-4 h-4" />
-          <span>Remove</span>
+          <Mic className="w-4 h-4" />
+          <span>Audio</span>
         </button>
 
         <button
-          onClick={() => setToolMode('assets')}
-          className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-xl transition-all ${
-            toolMode === 'assets'
+          onClick={() => setToolMode('bitmap_ascii')}
+          className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all ${
+            toolMode === 'bitmap_ascii'
               ? 'bg-[--accent-blue] text-white font-bold'
               : 'text-[--text-secondary] hover:text-[--text-primary]'
           }`}
         >
-          <History className="w-4 h-4" />
-          <span>History</span>
+          <Grid className="w-4 h-4" />
+          <span>Art</span>
         </button>
       </div>
 
