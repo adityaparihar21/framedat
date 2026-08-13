@@ -1,20 +1,45 @@
 /**
  * Client-Side Canvas Engine for Bitmap Dithering, ASCII Text Art,
- * Black & White Halftone Dot Matrix, and Retro Pixelation for framedat
+ * Minecraft Voxel Blockify, Black & White Halftone Dot Matrix, and Retro Pixelation for framedat
  */
 
-export type CreativeEffectType = 'bitmap_dither' | 'ascii_art' | 'halftone_dots' | 'pixelate' | 'line_sketch';
+export type CreativeEffectType =
+  | 'bitmap_dither'
+  | 'ascii_art'
+  | 'minecraft_blocks'
+  | 'halftone_dots'
+  | 'pixelate'
+  | 'line_sketch';
 
 export interface BitmapAsciiOptions {
   effect: CreativeEffectType;
   resolutionScale: number; // 0.1 to 1.0
   threshold: number; // 0 to 250
-  dotSize: number; // 2 to 20 px
+  dotSize: number; // 2 to 32 px (block size)
   contrast: number; // -50 to 50
+  protectSubject: boolean; // Preserve main subject while blockifying background
+  subjectSensitivity: number; // 0 to 100
   asciiCharset: string;
 }
 
 export const DEFAULT_ASCII_CHARSET = '@#S%?*+;:,. ';
+
+// Classic Minecraft Block Color Palette
+const MINECRAFT_PALETTE = [
+  { r: 89, g: 140, b: 48, name: 'grass' },
+  { r: 134, g: 96, b: 67, name: 'dirt' },
+  { r: 125, g: 125, b: 125, name: 'stone' },
+  { r: 54, g: 54, b: 54, name: 'deepslate' },
+  { r: 162, g: 130, b: 78, name: 'oak_wood' },
+  { r: 198, g: 162, b: 106, name: 'planks' },
+  { r: 219, g: 207, b: 161, name: 'sand' },
+  { r: 63, g: 118, b: 228, name: 'water' },
+  { r: 120, g: 168, b: 240, name: 'sky' },
+  { r: 228, g: 70, b: 20, name: 'lava' },
+  { r: 45, g: 110, b: 35, name: 'leaves' },
+  { r: 240, g: 240, b: 240, name: 'snow' },
+  { r: 35, g: 30, b: 45, name: 'obsidian' },
+];
 
 /**
  * Converts Image Source to ASCII Text String
@@ -26,7 +51,7 @@ export async function generateAsciiText(
   const img = await loadImage(imageSource);
   const scale = options.resolutionScale || 0.2;
   const cols = Math.floor((img.naturalWidth || img.width) * scale);
-  const rows = Math.floor((img.naturalHeight || img.height) * scale * 0.5); // Aspect ratio correction for font height
+  const rows = Math.floor((img.naturalHeight || img.height) * scale * 0.5);
 
   const canvas = document.createElement('canvas');
   canvas.width = cols;
@@ -49,7 +74,6 @@ export async function generateAsciiText(
       const g = data[idx + 1];
       const b = data[idx + 2];
 
-      // Luminance
       const luma = 0.299 * r + 0.587 * g + 0.114 * b;
       const charIdx = Math.floor(((255 - luma) / 255) * (charLen - 1));
       asciiText += charset[Math.max(0, Math.min(charLen - 1, charIdx))];
@@ -81,6 +105,10 @@ export async function processCreativeEffect(
   const imgData = ctx.getImageData(0, 0, width, height);
 
   switch (options.effect) {
+    case 'minecraft_blocks':
+      applyMinecraftVoxelBlocks(ctx, img, width, height, options);
+      break;
+
     case 'bitmap_dither':
       applyFloydSteinbergDither(ctx, imgData, options.threshold);
       break;
@@ -99,7 +127,6 @@ export async function processCreativeEffect(
 
     case 'ascii_art':
     default:
-      // Draw ASCII text onto canvas for PNG export
       const asciiText = await generateAsciiText(imageSource, options);
       drawAsciiOntoCanvas(ctx, asciiText, width, height);
       break;
@@ -111,6 +138,114 @@ export async function processCreativeEffect(
       else reject(new Error('Failed to render creative effect PNG.'));
     }, 'image/png');
   });
+}
+
+/**
+ * Minecraft Voxel Blockify Filter
+ * Converts background pixels into 3D Minecraft Voxel blocks while optionally protecting the main subject!
+ */
+function applyMinecraftVoxelBlocks(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  w: number,
+  h: number,
+  options: BitmapAsciiOptions
+) {
+  const blockSize = Math.max(6, options.dotSize);
+
+  // Sample original image data
+  const sampleCanvas = document.createElement('canvas');
+  sampleCanvas.width = w;
+  sampleCanvas.height = h;
+  const sampleCtx = sampleCanvas.getContext('2d');
+  if (!sampleCtx) return;
+  sampleCtx.drawImage(img, 0, 0, w, h);
+  const imgData = sampleCtx.getImageData(0, 0, w, h);
+  const data = imgData.data;
+
+  // Center coordinates for subject protection thresholding
+  const centerX = w / 2;
+  const centerY = h / 2;
+  const maxRadius = Math.min(w, h) * (options.subjectSensitivity / 100);
+
+  // Draw base original image first if subject protection enabled
+  ctx.drawImage(img, 0, 0, w, h);
+
+  for (let y = 0; y < h; y += blockSize) {
+    for (let x = 0; x < w; x += blockSize) {
+      // Calculate distance to center for subject protection
+      const distFromCenter = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+      const isSubjectRegion = options.protectSubject && distFromCenter < maxRadius;
+
+      // If in protected subject zone, keep original image details crisp!
+      if (isSubjectRegion) {
+        continue;
+      }
+
+      // Sample average color of block
+      let avgR = 0, avgG = 0, avgB = 0, count = 0;
+
+      for (let by = 0; by < blockSize && y + by < h; by += 2) {
+        for (let bx = 0; bx < blockSize && x + bx < w; bx += 2) {
+          const idx = ((y + by) * w + (x + bx)) * 4;
+          avgR += data[idx];
+          avgG += data[idx + 1];
+          avgB += data[idx + 2];
+          count++;
+        }
+      }
+
+      if (count > 0) {
+        avgR = Math.round(avgR / count);
+        avgG = Math.round(avgG / count);
+        avgB = Math.round(avgB / count);
+      }
+
+      // Find closest Minecraft block color palette match
+      const nearestBlock = getNearestMinecraftColor(avgR, avgG, avgB);
+
+      // Draw Minecraft Voxel 3D Block with bevel highlight & shadow
+      ctx.fillStyle = `rgb(${nearestBlock.r}, ${nearestBlock.g}, ${nearestBlock.b})`;
+      ctx.fillRect(x, y, blockSize, blockSize);
+
+      // Top-Left Highlight Edge
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.fillRect(x, y, blockSize, Math.max(1, blockSize * 0.15));
+      ctx.fillRect(x, y, Math.max(1, blockSize * 0.15), blockSize);
+
+      // Bottom-Right Shadow Edge
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.fillRect(x, y + blockSize - Math.max(1, blockSize * 0.15), blockSize, Math.max(1, blockSize * 0.15));
+      ctx.fillRect(x + blockSize - Math.max(1, blockSize * 0.15), y, Math.max(1, blockSize * 0.15), blockSize);
+
+      // Block Grid Border Line
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x, y, blockSize, blockSize);
+    }
+  }
+}
+
+/**
+ * Finds closest color match in classic Minecraft color palette
+ */
+function getNearestMinecraftColor(r: number, g: number, b: number) {
+  let minDistance = Infinity;
+  let closest = MINECRAFT_PALETTE[0];
+
+  for (const block of MINECRAFT_PALETTE) {
+    const dist = Math.sqrt(
+      Math.pow(r - block.r, 2) +
+      Math.pow(g - block.g, 2) +
+      Math.pow(b - block.b, 2)
+    );
+    if (dist < minDistance) {
+      minDistance = dist;
+      closest = block;
+    }
+  }
+
+  return closest;
 }
 
 /**
@@ -132,7 +267,6 @@ function applyFloydSteinbergDither(ctx: CanvasRenderingContext2D, imgData: Image
       data[i + 1] = newPixel;
       data[i + 2] = newPixel;
 
-      // Distribute error to neighboring pixels
       if (x + 1 < w) distributeError(data, i + 4, quantError * 7 / 16);
       if (x - 1 >= 0 && y + 1 < h) distributeError(data, i + (w - 1) * 4, quantError * 3 / 16);
       if (y + 1 < h) distributeError(data, i + w * 4, quantError * 5 / 16);

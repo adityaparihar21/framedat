@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { BitmapAsciiOptions, CreativeEffectType } from '../utils/bitmapAsciiGenerator';
 import { processCreativeEffect, generateAsciiText } from '../utils/bitmapAsciiGenerator';
 import { saveAs } from 'file-saver';
-import { Download, Copy, Sparkles, Sliders, RefreshCw, ArrowRight, Grid } from 'lucide-react';
+import { Download, Copy, Sliders, RefreshCw, ArrowRight, Box, Shield } from 'lucide-react';
 
 interface BitmapAsciiStudioProps {
   initialImageBlob?: Blob | null;
@@ -21,11 +21,13 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
   const [isDragOver, setIsDragOver] = useState(false);
 
   const [options, setOptions] = useState<BitmapAsciiOptions>({
-    effect: 'bitmap_dither',
+    effect: 'minecraft_blocks',
     resolutionScale: 0.35,
     threshold: 128,
-    dotSize: 6,
+    dotSize: 12,
     contrast: 0,
+    protectSubject: true,
+    subjectSensitivity: 40,
     asciiCharset: '@#S%?*+;:,. ',
   });
 
@@ -122,15 +124,15 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
           <div className="mb-10 sm:mb-12 max-w-[680px] animate-hero-fade">
             <div className="font-mono text-xs tracking-[0.15em] text-[--text-tertiary] uppercase mb-3 flex items-center justify-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[--accent-blue]"></span>
-              <span>STUDIO / BITMAP & ASCII ART</span>
+              <span>STUDIO / MINECRAFT VOXEL & ASCII ART</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[--text-primary] mb-4 leading-[1.08] font-sans">
-              Bitmap & ASCII Art Studio
+              Minecraft Voxel & ASCII Studio
             </h1>
 
             <p className="text-base sm:text-lg text-[--text-secondary] font-normal leading-relaxed">
-              Transform photos and video frames into Floyd-Steinberg Bitmap Dithering, ASCII Art, and Halftone Dot Matrix.
+              Transform background scenery into Minecraft Voxel Blocks while keeping main subjects in crisp original detail.
             </p>
           </div>
 
@@ -146,11 +148,11 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
             }`}
           >
             <div className="w-12 h-12 mb-5 rounded-2xl bg-[--bg-surface-2] border border-[--border-subtle] flex items-center justify-center text-[--accent-blue] group-hover:scale-110 transition-transform">
-              <Grid className="w-5 h-5" />
+              <Box className="w-5 h-5" />
             </div>
 
             <h2 className="text-lg sm:text-xl font-bold text-[--text-primary] mb-2 font-sans">
-              {isDragOver ? 'Release to apply creative effect' : 'Drop photo or image here'}
+              {isDragOver ? 'Release to render Minecraft Voxel blocks' : 'Drop photo or image here'}
             </h2>
 
             <p className="text-xs sm:text-sm text-[--text-tertiary] mb-6 font-normal">
@@ -172,14 +174,14 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[--border-subtle]">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-[--accent-blue-dim] border border-[--accent-blue-border] flex items-center justify-center text-[--accent-blue]">
-                <Sparkles className="w-5 h-5" />
+                <Box className="w-5 h-5" />
               </div>
               <div>
                 <h2 className="text-base font-bold text-[--text-primary] font-sans">
-                  Bitmap & ASCII Art Studio
+                  Minecraft Voxel & ASCII Studio
                 </h2>
                 <p className="text-xs text-[--text-secondary] font-mono">
-                  1-Bit Dither • Halftone Matrix • ASCII Art Generator
+                  Minecraft Voxel Blocks • 1-Bit Dither • Halftone Matrix • ASCII Art
                 </p>
               </div>
             </div>
@@ -210,11 +212,12 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
               {/* Effect Mode Selector */}
               <div className="flex flex-col gap-2">
                 {[
-                  { id: 'bitmap_dither', label: '1-Bit Bitmap Dither' },
-                  { id: 'ascii_art', label: 'ASCII Text Art' },
-                  { id: 'halftone_dots', label: 'Halftone Dot Matrix' },
-                  { id: 'pixelate', label: '8-Bit Pixelate' },
-                  { id: 'line_sketch', label: 'Monochrome Line Sketch' },
+                  { id: 'minecraft_blocks', label: '📦 Minecraft Voxel Blocks' },
+                  { id: 'bitmap_dither', label: '▒ 1-Bit Bitmap Dither' },
+                  { id: 'ascii_art', label: '🔤 ASCII Text Art' },
+                  { id: 'halftone_dots', label: '⚪ Halftone Dot Matrix' },
+                  { id: 'pixelate', label: '🕹️ 8-Bit Pixelate' },
+                  { id: 'line_sketch', label: '✏️ Monochrome Line Sketch' },
                 ].map((item) => (
                   <button
                     key={item.id}
@@ -230,8 +233,66 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
                 ))}
               </div>
 
+              {/* SUBJECT PROTECTION CHECKBOX & SLIDER (Audio Directive: Keep subject original while background becomes Minecraft blocks) */}
+              {options.effect === 'minecraft_blocks' && (
+                <div className="p-3 rounded bg-[--bg-surface-2]/40 border border-[--accent-blue-border]">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="flex items-center gap-1.5 font-semibold text-[--text-primary] cursor-pointer">
+                      <Shield className="w-3.5 h-3.5 text-[--accent-blue]" />
+                      <span>Protect Main Subject</span>
+                    </label>
+                    <input
+                      type="checkbox"
+                      checked={options.protectSubject}
+                      onChange={(e) => setOptions({ ...options, protectSubject: e.target.checked })}
+                      className="custom-checkbox"
+                    />
+                  </div>
+
+                  {options.protectSubject && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1 text-[11px]">
+                        <span className="text-[--text-tertiary]">Subject Radius Bounds</span>
+                        <span className="font-bold text-[--accent-blue]">{options.subjectSensitivity}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="10"
+                        max="80"
+                        value={options.subjectSensitivity}
+                        onChange={(e) => setOptions({ ...options, subjectSensitivity: parseInt(e.target.value) || 30 })}
+                        className="w-full h-1.5 bg-[--bg-surface-3] rounded appearance-none cursor-pointer accent-[--accent-blue]"
+                      />
+                      <p className="text-[10px] text-[--text-tertiary] mt-1 font-sans">
+                        Keeps central subject in crisp original quality while turning background into Minecraft Voxel blocks.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Voxel Block Size / Grid Density Slider */}
+              {(options.effect === 'minecraft_blocks' || options.effect === 'halftone_dots' || options.effect === 'pixelate' || options.effect === 'ascii_art') && (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] text-[--text-tertiary] uppercase">
+                      {options.effect === 'minecraft_blocks' ? 'Voxel Block Size' : 'Grid Density'}
+                    </label>
+                    <span className="font-bold text-[--accent-blue]">{options.dotSize}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="4"
+                    max="32"
+                    value={options.dotSize}
+                    onChange={(e) => setOptions({ ...options, dotSize: parseInt(e.target.value) || 12 })}
+                    className="w-full h-1.5 bg-[--bg-surface-3] rounded appearance-none cursor-pointer accent-[--accent-blue]"
+                  />
+                </div>
+              )}
+
               {/* Threshold Slider */}
-              {options.effect !== 'pixelate' && (
+              {(options.effect === 'bitmap_dither' || options.effect === 'line_sketch') && (
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="text-[11px] text-[--text-tertiary] uppercase">Cutoff Threshold</label>
@@ -243,24 +304,6 @@ export const BitmapAsciiStudio: React.FC<BitmapAsciiStudioProps> = ({
                     max="220"
                     value={options.threshold}
                     onChange={(e) => setOptions({ ...options, threshold: parseInt(e.target.value) || 128 })}
-                    className="w-full h-1.5 bg-[--bg-surface-3] rounded appearance-none cursor-pointer accent-[--accent-blue]"
-                  />
-                </div>
-              )}
-
-              {/* Dot Size / Resolution Slider */}
-              {(options.effect === 'halftone_dots' || options.effect === 'pixelate' || options.effect === 'ascii_art') && (
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-[11px] text-[--text-tertiary] uppercase">Grid Density / Size</label>
-                    <span className="font-bold text-[--accent-blue]">{options.dotSize}px</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="2"
-                    max="20"
-                    value={options.dotSize}
-                    onChange={(e) => setOptions({ ...options, dotSize: parseInt(e.target.value) || 6 })}
                     className="w-full h-1.5 bg-[--bg-surface-3] rounded appearance-none cursor-pointer accent-[--accent-blue]"
                   />
                 </div>
