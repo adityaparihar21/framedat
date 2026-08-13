@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { Header } from './components/Header';
+import { Header, type AppToolMode } from './components/Header';
 import { Dropzone } from './components/Dropzone';
 import { MetadataBar } from './components/MetadataBar';
 import { VideoPlayerScrubber } from './components/VideoPlayerScrubber';
@@ -14,6 +14,7 @@ import { LightboxModal } from './components/LightboxModal';
 import { CompareModal } from './components/CompareModal';
 import { GifExportModal } from './components/GifExportModal';
 import { ContactSheetModal } from './components/ContactSheetModal';
+import { BackgroundRemover } from './components/BackgroundRemover';
 import { CinematicIntro } from './components/CinematicIntro';
 import { Footer } from './components/Footer';
 
@@ -25,6 +26,9 @@ import { createDemoVideoFile } from './utils/sampleVideo';
 
 export const App: React.FC = () => {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [toolMode, setToolMode] = useState<AppToolMode>('extractor');
+  const [bgRemoverInitialBlob, setBgRemoverInitialBlob] = useState<Blob | null>(null);
+
   const [metadata, setMetadata] = useState<VideoMetadata | null>(null);
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
   const [isLoadingSample, setIsLoadingLoadingSample] = useState(false);
@@ -237,18 +241,26 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[--bg-app] text-[--text-primary] transition-colors duration-150">
-      {showIntro && <CinematicIntro onComplete={handleIntroComplete} />}
+      {showIntro && toolMode === 'extractor' && <CinematicIntro onComplete={handleIntroComplete} />}
 
       <Header
         theme={theme}
+        toolMode={toolMode}
+        onChangeToolMode={setToolMode}
         onToggleTheme={toggleTheme}
         onReset={handleReset}
         onReplayIntro={handleReplayIntro}
         hasVideo={!!metadata}
       />
 
-      <main className={`flex-1 w-full flex flex-col ${!metadata ? 'items-center justify-center my-auto min-h-[calc(100vh-140px)]' : 'py-6 sm:py-8'}`}>
-        {!metadata ? (
+      <main className={`flex-1 w-full flex flex-col ${toolMode === 'extractor' && !metadata ? 'items-center justify-center my-auto min-h-[calc(100vh-140px)]' : 'py-6 sm:py-8'}`}>
+        {toolMode === 'bg_remover' ? (
+          /* BACKGROUND REMOVER STUDIO TOOL */
+          <BackgroundRemover
+            initialImageBlob={bgRemoverInitialBlob}
+            onBackToExtractor={() => setToolMode('extractor')}
+          />
+        ) : !metadata ? (
           /* STATE 1: PERFECTLY CENTERED ELEGANT DROPZONE */
           <Dropzone
             onFileSelect={handleFileSelect}
@@ -311,6 +323,10 @@ export const App: React.FC = () => {
                   onOpenCompareModal={() => setIsCompareOpen(true)}
                   onOpenGifExportModal={() => setIsGifExportOpen(true)}
                   onOpenContactSheetModal={() => setIsContactSheetOpen(true)}
+                  onRemoveFrameBackground={(blob) => {
+                    setBgRemoverInitialBlob(blob);
+                    setToolMode('bg_remover');
+                  }}
                   videoName={metadata.name}
                 />
               </>

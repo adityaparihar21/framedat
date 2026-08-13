@@ -1,8 +1,12 @@
 import React from 'react';
-import { Sun, Moon, Lock, RefreshCw, Film } from 'lucide-react';
+import { Sun, Moon, Lock, RefreshCw, Film, Scissors, Video } from 'lucide-react';
+
+export type AppToolMode = 'extractor' | 'bg_remover';
 
 interface HeaderProps {
   theme: 'dark' | 'light';
+  toolMode: AppToolMode;
+  onChangeToolMode: (mode: AppToolMode) => void;
   onToggleTheme: () => void;
   onReset: () => void;
   onReplayIntro?: () => void;
@@ -11,6 +15,8 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   theme,
+  toolMode,
+  onChangeToolMode,
   onToggleTheme,
   onReset,
   onReplayIntro,
@@ -19,35 +25,55 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="border-b border-[--border-subtle] bg-[--bg-app] px-4 sm:px-6 py-3 transition-colors">
       <div className="page-container flex items-center justify-between">
-        {/* Left: Minimal Wordmark & Version */}
-        <div className="flex items-center gap-2 cursor-pointer" onClick={onReset}>
-          <span className="font-extrabold text-base tracking-tight text-[--text-primary] font-sans">
-            framedat
-          </span>
-          <span className="font-mono text-[10px] font-medium text-[--text-tertiary] bg-[--bg-surface-2] px-1.5 py-0.5 rounded border border-[--border-subtle]">
-            v1.0
-          </span>
+        {/* Left: Minimal Wordmark & Tool Switcher */}
+        <div className="flex items-center gap-4 sm:gap-6">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={onReset}>
+            <span className="font-extrabold text-base tracking-tight text-[--text-primary] font-sans">
+              framedat
+            </span>
+            <span className="font-mono text-[10px] font-medium text-[--text-tertiary] bg-[--bg-surface-2] px-1.5 py-0.5 rounded border border-[--border-subtle]">
+              v1.0
+            </span>
+          </div>
+
+          {/* Desktop Tool Mode Segmented Control */}
+          <div className="segmented-control font-mono text-xs hidden md:inline-flex">
+            <button
+              onClick={() => onChangeToolMode('extractor')}
+              className={`flex items-center gap-1.5 ${toolMode === 'extractor' ? 'active font-bold' : ''}`}
+            >
+              <Video className="w-3.5 h-3.5 text-[--accent-blue]" />
+              <span>Frame Extractor</span>
+            </button>
+            <button
+              onClick={() => onChangeToolMode('bg_remover')}
+              className={`flex items-center gap-1.5 ${toolMode === 'bg_remover' ? 'active font-bold' : ''}`}
+            >
+              <Scissors className="w-3.5 h-3.5 text-[--accent-blue]" />
+              <span>Background Remover</span>
+            </button>
+          </div>
         </div>
 
         {/* Right: Controls & Status */}
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-1.5 text-xs text-[--text-secondary]">
             <Lock className="w-3.5 h-3.5 text-[--text-tertiary]" />
-            <span className="hidden sm:inline font-mono">Local processing</span>
+            <span className="hidden lg:inline font-mono">Local processing</span>
           </div>
 
-          {!hasVideo && onReplayIntro && (
+          {!hasVideo && onReplayIntro && toolMode === 'extractor' && (
             <button
               onClick={onReplayIntro}
               className="btn btn-ghost text-xs py-1 px-2.5 flex items-center gap-1.5 text-[--text-secondary]"
-              title="Replay cinematic intro animation"
+              title="Replay intro animation"
             >
               <Film className="w-3.5 h-3.5 text-[--accent-blue]" />
               <span className="hidden sm:inline font-mono text-[11px]">Replay Intro</span>
             </button>
           )}
 
-          {hasVideo && (
+          {hasVideo && toolMode === 'extractor' && (
             <button
               onClick={onReset}
               className="btn btn-secondary text-xs py-1 px-2.5 flex items-center gap-1.5"

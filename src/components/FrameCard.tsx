@@ -2,18 +2,20 @@ import React from 'react';
 import type { FrameData } from '../types';
 import { downloadSingleFrame } from '../utils/zipGenerator';
 import { formatBytes } from '../utils/videoMetadata';
-import { Download, Maximize2, Sparkles, Copy } from 'lucide-react';
+import { Download, Maximize2, Sparkles, Copy, Scissors } from 'lucide-react';
 
 interface FrameCardProps {
   frame: FrameData;
   onToggleSelect: (id: string, e: React.MouseEvent) => void;
   onOpenLightbox: (frame: FrameData) => void;
+  onRemoveBackground?: (blob: Blob) => void;
 }
 
 export const FrameCard: React.FC<FrameCardProps> = ({
   frame,
   onToggleSelect,
   onOpenLightbox,
+  onRemoveBackground,
 }) => {
   return (
     <div
@@ -62,8 +64,21 @@ export const FrameCard: React.FC<FrameCardProps> = ({
           loading="lazy"
         />
 
-        {/* Hover inspect button */}
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        {/* Hover Inspect & BG Remove Buttons */}
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+          {onRemoveBackground && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveBackground(frame.blob);
+              }}
+              className="p-1.5 rounded bg-white/20 hover:bg-[--accent-blue] text-white border border-white/20 transition-all"
+              title="Remove Background from Frame"
+            >
+              <Scissors className="w-3.5 h-3.5" />
+            </button>
+          )}
+
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -78,12 +93,10 @@ export const FrameCard: React.FC<FrameCardProps> = ({
       </div>
 
       {/* Card Info Footer */}
-      <div className="p-2.5 bg-[--bg-surface-1] border-t border-[--border-subtle] flex items-center justify-between text-xs">
-        <div>
-          <div className="font-mono font-bold text-[--text-primary] text-[11px]">{frame.timeString}</div>
-          <div className="text-[10px] text-[--text-tertiary] font-mono">
-            {frame.width}×{frame.height} • {formatBytes(frame.sizeBytes)}
-          </div>
+      <div className="p-2.5 flex items-center justify-between text-xs font-mono">
+        <div className="truncate">
+          <div className="font-semibold text-[--text-primary] truncate">{frame.timeString}</div>
+          <div className="text-[10px] text-[--text-tertiary]">{formatBytes(frame.sizeBytes)}</div>
         </div>
 
         <button
@@ -91,10 +104,10 @@ export const FrameCard: React.FC<FrameCardProps> = ({
             e.stopPropagation();
             downloadSingleFrame(frame);
           }}
-          className="p-1 rounded bg-[--bg-surface-2] hover:bg-[--accent-blue] hover:text-white border border-[--border-subtle] text-[--text-secondary] transition-colors"
-          title="Download Frame"
+          className="p-1.5 rounded bg-[--bg-surface-2] hover:bg-[--bg-surface-3] text-[--text-secondary] hover:text-[--text-primary] border border-[--border-subtle] transition-colors"
+          title="Download Frame Image"
         >
-          <Download className="w-3 h-3" />
+          <Download className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>

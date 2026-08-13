@@ -14,6 +14,7 @@ interface FrameGridProps {
   onOpenCompareModal: () => void;
   onOpenGifExportModal: () => void;
   onOpenContactSheetModal: () => void;
+  onRemoveFrameBackground?: (blob: Blob) => void;
   videoName: string;
 }
 
@@ -27,6 +28,7 @@ export const FrameGrid: React.FC<FrameGridProps> = ({
   onOpenCompareModal,
   onOpenGifExportModal,
   onOpenContactSheetModal,
+  onRemoveFrameBackground,
   videoName,
 }) => {
   const [filterSceneCutsOnly, setFilterSceneCutsOnly] = useState(false);
@@ -180,6 +182,7 @@ export const FrameGrid: React.FC<FrameGridProps> = ({
               frame={frame}
               onToggleSelect={onToggleSelectFrame}
               onOpenLightbox={onOpenLightbox}
+              onRemoveBackground={onRemoveFrameBackground}
             />
           ))}
         </div>

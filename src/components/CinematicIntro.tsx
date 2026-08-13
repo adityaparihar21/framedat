@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Upload, FileVideo } from 'lucide-react';
+import { Volume2, VolumeX } from 'lucide-react';
 import { introSound } from '../utils/introSound';
 
 interface CinematicIntroProps {
@@ -7,17 +7,14 @@ interface CinematicIntroProps {
 }
 
 type IntroPhase = 
-  | 'start'           // 0.0 - 0.5s: Dark + thin line
-  | 'every_moment'    // 0.5 - 1.3s: "Every moment..."
-  | 'has_a_frame'     // 1.3 - 2.0s: "has a frame."
-  | 'find_it'         // 2.0 - 2.6s: "Find it." + playhead
-  | 'extract_it'      // 2.6 - 3.2s: "Extract it." + frame strip
-  | 'review_it'       // 3.2 - 3.8s: "Review it."
-  | 'keep_it'         // 3.8 - 4.4s: "Keep it."
-  | 'title_reveal'    // 4.4 - 5.4s: "Precision Frame Extraction"
-  | 'morph_uploader'  // 5.4 - 6.6s: Morph smoothly into uploader box
-  | 'fade_out'        // 6.6 - 7.3s: Seamless opacity dissolve into main page
-  | 'done';
+  | 'start'           // 0.0 - 0.4s: Dark + thin line
+  | 'every_moment'    // 0.4 - 1.1s: "Every moment..."
+  | 'has_a_frame'     // 1.1 - 1.8s: "has a frame."
+  | 'find_it'         // 1.8 - 2.4s: "Find it." + playhead
+  | 'extract_it'      // 2.4 - 3.0s: "Extract it."
+  | 'review_it'       // 3.0 - 3.6s: "Review it."
+  | 'keep_it'         // 3.6 - 4.2s: "Keep it."
+  | 'done';           // 4.2s: Immediately reveals main homepage (ZERO 3-step lag!)
 
 export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) => {
   const [phase, setPhase] = useState<IntroPhase>('start');
@@ -35,7 +32,7 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Main cinematic timeline sequence + Apple / Google Gemini style Sound triggers
+  // Main cinematic timeline sequence
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
@@ -43,61 +40,48 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
       return;
     }
 
-    // Play subtle soft warm ambient pad
-    introSound.playWarmAmbientPad(7.2);
+    introSound.playWarmAmbientPad(4.5);
 
     const t1 = setTimeout(() => {
       setPhase('every_moment');
       introSound.playHapticTap();
-    }, 500);
+    }, 400);
 
     const t2 = setTimeout(() => {
       setPhase('has_a_frame');
       introSound.playHapticTap();
-    }, 1300);
+    }, 1100);
 
     const t3 = setTimeout(() => {
       setPhase('find_it');
       setPlayheadPos(30);
       introSound.playHapticTap();
-    }, 2000);
+    }, 1800);
 
     const t4 = setTimeout(() => {
       setPhase('extract_it');
       setPlayheadPos(55);
       introSound.playHapticTap();
-    }, 2600);
+    }, 2400);
 
     const t5 = setTimeout(() => {
       setPhase('review_it');
       setPlayheadPos(75);
       introSound.playHapticTap();
-    }, 3200);
+    }, 3000);
 
     const t6 = setTimeout(() => {
       setPhase('keep_it');
+      setPlayheadPos(90);
       introSound.playHapticTap();
-    }, 3800);
+    }, 3600);
 
     const t7 = setTimeout(() => {
-      setPhase('title_reveal');
-      introSound.playSubtleChime();
-    }, 4400);
-
-    const t8 = setTimeout(() => {
-      setPhase('morph_uploader');
-      introSound.playSoftTransitionSwell();
-    }, 5400);
-
-    const t9 = setTimeout(() => {
-      setPhase('fade_out');
-    }, 6600);
-
-    const t10 = setTimeout(() => {
       setPhase('done');
+      introSound.playSubtleChime();
       introSound.close();
       onComplete();
-    }, 7300);
+    }, 4200);
 
     return () => {
       clearTimeout(t1);
@@ -107,9 +91,6 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
       clearTimeout(t5);
       clearTimeout(t6);
       clearTimeout(t7);
-      clearTimeout(t8);
-      clearTimeout(t9);
-      clearTimeout(t10);
     };
   }, [onComplete]);
 
@@ -128,11 +109,7 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
   if (phase === 'done') return null;
 
   return (
-    <div
-      className={`fixed inset-0 z-[100] bg-[#090B10] flex flex-col items-center justify-center select-none overflow-hidden font-sans transition-opacity duration-700 ${
-        phase === 'fade_out' ? 'opacity-0 pointer-events-none' : 'opacity-100'
-      }`}
-    >
+    <div className="fixed inset-0 z-[100] bg-[#090B10] flex flex-col items-center justify-center select-none overflow-hidden font-sans">
       {/* Top Controls: Sound Toggle & Skip Intro */}
       <div className="absolute top-4 right-6 z-20 flex items-center gap-2 font-mono text-xs">
         <button
@@ -162,10 +139,10 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
         </button>
       </div>
 
-      {/* Main Motion Composition Center — EXACT 1:1 GEOMETRIC MATCH TO HOMEPAGE */}
+      {/* Main Motion Composition Center — EXACT GEOMETRIC ALIGNMENT */}
       <div className="w-full max-w-lg mx-auto flex flex-col items-center justify-center text-center my-auto px-4">
         
-        {/* HEADING BLOCK — FIXED min-h-[76px] & mb-14 sm:mb-16 TO PREVENT ANY SHIFTING */}
+        {/* HEADING BLOCK — LOCKED min-h-[76px] & mb-14 sm:mb-16 */}
         <div className="mb-14 sm:mb-16 min-h-[76px] flex flex-col items-center justify-center">
           {phase === 'every_moment' && (
             <div className="text-2xl sm:text-4xl font-extrabold text-[--text-primary] tracking-tight animate-horizontal-reveal font-sans my-auto">
@@ -202,83 +179,31 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
               Keep it.
             </div>
           )}
-
-          {(phase === 'title_reveal' || phase === 'morph_uploader' || phase === 'fade_out') && (
-            <div className="animate-slide-fade">
-              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[--text-primary] mb-3 font-sans">
-                Precision Frame Extraction
-              </h1>
-              <p className="text-sm text-[--text-secondary] max-w-sm mx-auto font-normal leading-relaxed">
-                Extract exact video frames locally at native resolution.
-              </p>
-            </div>
-          )}
         </div>
 
-        {/* CENTER FOCAL CONTAINER — MORPHS INTO HOMEPAGE UPLOAD BOX */}
-        <div
-          className={`w-full transition-all duration-1000 ease-out relative ${
-            phase === 'morph_uploader' || phase === 'fade_out'
-              ? 'max-w-[460px] p-8 sm:p-10 text-center rounded-2xl border border-[--border-subtle] bg-[--bg-surface-1]'
-              : 'max-w-md h-12 flex items-center justify-center'
-          }`}
-        >
-          {phase !== 'morph_uploader' && phase !== 'fade_out' ? (
-            /* TIMELINE TRACK & PLAYHEAD */
-            <div className="relative w-full h-1 bg-[--bg-surface-3] rounded-full overflow-visible my-auto">
-              <div
-                className="absolute left-0 top-0 bottom-0 bg-[--accent-blue] rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${playheadPos}%` }}
-              />
-              <div
-                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-[--accent-blue] border-2 border-white shadow-md transition-all duration-500 ease-out"
-                style={{ left: `${playheadPos}%` }}
-              />
+        {/* TIMELINE TRACK & PLAYHEAD */}
+        <div className="w-full max-w-md h-12 flex items-center justify-center relative">
+          <div className="relative w-full h-1 bg-[--bg-surface-3] rounded-full overflow-visible my-auto">
+            <div
+              className="absolute left-0 top-0 bottom-0 bg-[--accent-blue] rounded-full transition-all duration-400 ease-out"
+              style={{ width: `${playheadPos}%` }}
+            />
+            <div
+              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-[--accent-blue] border-2 border-white shadow-md transition-all duration-400 ease-out"
+              style={{ left: `${playheadPos}%` }}
+            />
 
-              {/* Frame Sequence Numbers — Reveals during extract/review phase */}
-              {(phase === 'extract_it' || phase === 'review_it' || phase === 'keep_it') && (
-                <div className="absolute top-[-16px] left-0 right-0 flex justify-between px-2 text-[9px] font-mono text-[--text-tertiary] animate-fadeIn">
-                  <span>001</span>
-                  <span>002</span>
-                  <span>003</span>
-                  <span>004</span>
-                  <span>005</span>
-                </div>
-              )}
-            </div>
-          ) : (
-            /* IDENTICAL MATCH TO HOMEPAGE DROPZONE BOX */
-            <div className="flex flex-col items-center justify-center animate-fadeIn">
-              <div className="w-12 h-12 mb-4 rounded-full bg-[--accent-blue-dim] border border-[--accent-blue-border] flex items-center justify-center text-[--accent-blue]">
-                <Upload className="w-5 h-5" />
+            {(phase === 'extract_it' || phase === 'review_it' || phase === 'keep_it') && (
+              <div className="absolute top-[-16px] left-0 right-0 flex justify-between px-2 text-[9px] font-mono text-[--text-tertiary] animate-fadeIn">
+                <span>001</span>
+                <span>002</span>
+                <span>003</span>
+                <span>004</span>
+                <span>005</span>
               </div>
-
-              <h2 className="text-base font-bold text-[--text-primary] mb-1">
-                Drop video here
-              </h2>
-              <p className="text-xs text-[--text-tertiary] mb-6">
-                or choose a file from your computer
-              </p>
-
-              <button
-                type="button"
-                className="btn btn-primary text-xs py-2.5 px-6 font-semibold shadow-md shadow-[--accent-blue]/20"
-              >
-                <FileVideo className="w-4 h-4" />
-                <span>Choose Video</span>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* FOOTER FORMAT SPECIFIER — APPEARS ON MORPH */}
-        {(phase === 'morph_uploader' || phase === 'fade_out') && (
-          <div className="mt-6 text-center animate-fadeIn">
-            <span className="text-xs font-mono text-[--text-tertiary]">
-              MP4 · MOV · WebM · AVI · MKV &nbsp;•&nbsp; Up to 8K
-            </span>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
