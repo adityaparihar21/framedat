@@ -1,0 +1,310 @@
+import React, { useState, useEffect, useRef } from 'react';
+import confetti from 'canvas-confetti';
+import { Header } from './components/Header';
+import { Dropzone } from './components/Dropzone';
+import { MetadataBar } from './components/MetadataBar';
+import { VideoPlayerScrubber } from './components/VideoPlayerScrubber';
+import { ExtractionSettings } from './components/ExtractionSettings';
+import { ExtractionPreviewStrip } from './components/ExtractionPreviewStrip';
+import { ProgressBar } from './components/ProgressBar';
+import { FinalReviewPlayer } from './components/FinalReviewPlayer';
+import { DownloadSection } from './components/DownloadSection';
+import { FrameGrid } from './components/FrameGrid';
+import { LightboxModal } from './components/LightboxModal';
+import { CompareModal } from './components/CompareModal';
+import { GifExportModal } from './components/GifExportModal';
+import { Footer } from './components/Footer';
+
+import type { VideoMetadata, ExtractionOptions, FrameData, ExtractionProgress } from './types';
+import { detectVideoMetadata } from './utils/videoMetadata';
+import { extractFrames } from './utils/frameExtractor';
+import { analyzeSceneChanges } from './utils/sceneDetection';
+import { createDemoVideoFile } from './utils/sampleVideo';
+
+export const App: React.FC = () => {
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [metadata, setMetadata] = useState<VideoMetadata | null>(null);
+  const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
+  const [isLoadingSample, setIsLoadingLoadingSample] = useState(false);
+
+  const [options, setOptions] = useState<ExtractionOptions>({
+    mode: 'all',
+    frameCount: 24,
+    intervalSeconds: 1.0,
+    startTime: 0,
+    endTime: 0,
+    format: 'png',
+    jpegQuality: 0.95,
+    namingPattern: 'frame_number',
+    customPrefix: 'frame',
+    scaleRatio: 1.0,
+    engine: 'browser',
+    zeroPad: 4,
+  });
+
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [progress, setProgress] = useState<ExtractionProgress>({
+    status: 'idle',
+    currentFrame: 0,
+    totalFrames: 0,
+    percentage: 0,
+    fpsSpeed: 0,
+    elapsedTimeMs: 0,
+    estimatedTimeRemainingMs: 0,
+  });
+
+  const [frames, setFrames] = useState<FrameData[]>([]);
+  const [lightboxFrame, setLightboxFrame] = useState<FrameData | null>(null);
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [isGifExportOpen, setIsGifExportOpen] = useState(false);
+
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const lastSelectedFrameIdRef = useRef<string | null>(null);
+
+  // Sync theme with DOM body attribute
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const handleReset = () => {
+    if (metadata?.objectUrl) {
+      URL.revokeObjectURL(metadata.objectUrl);
+    }
+    frames.forEach((f) => URL.revokeObjectURL(f.url));
+    setMetadata(null);
+    setFrames([]);
+    setLightboxFrame(null);
+    setIsCompareOpen(false);
+    setIsGifExportOpen(false);
+  };
+
+  const handleFileSelect = async (file: File) => {
+    try {
+      setIsLoadingMetadata(true);
+      if (metadata?.objectUrl) {
+        URL.revokeObjectURL(metadata.objectUrl);
+      }
+      setFrames([]);
+      const meta = await detectVideoMetadata(file);
+      setMetadata(meta);
+      setOptions((prev) => ({ ...prev, startTime: 0, endTime: meta.duration }));
+    } catch (err: any) {
+      alert(err.message || 'Failed to parse video file.');
+    } finally {
+      setIsLoadingMetadata(false);
+    }
+  };
+
+  const handleSelectSampleVideo = async () => {
+    try {
+      setIsLoadingLoadingSample(true);
+      const demoFile = await createDemoVideoFile();
+      await handleFileSelect(demoFile);
+    } catch (err: any) {
+      alert(err.message || 'Failed to create sample video.');
+    } finally {
+      setIsLoadingLoadingSample(false);
+    }
+  };
+
+  const handleStartExtraction = async () => {
+    if (!metadata) return;
+
+    try {
+      setIsExtracting(true);
+      setFrames([]);
+      abortControllerRef.current = new AbortController();
+
+      const extracted = await extractFrames(
+        metadata,
+        options,
+        (progressData) => {
+          setProgress(progressData);
+        },
+        abortControllerRef.current.signal
+      );
+
+      const analyzed = await analyzeSceneChanges(extracted);
+      setFrames(analyzed);
+
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.7 },
+      });
+    } catch (err: any) {
+      if (err.message?.includes('canceled')) {
+        console.log('Extraction canceled by user.');
+      } else {
+        alert(`Extraction Error: ${err.message}`);
+      }
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  const handleCancelExtraction = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  };
+
+  const handleSnapshotSingleFrame = async (timestamp: number) => {
+    if (!metadata) return;
+    try {
+      const singleOptions: ExtractionOptions = {
+        ...options,
+        mode: 'interval',
+        startTime: timestamp,
+        endTime: timestamp + 0.001,
+        intervalSeconds: 1.0,
+      };
+
+      const result = await extractFrames(metadata, singleOptions);
+      if (result.length > 0) {
+        setFrames((prev) => [result[0], ...prev]);
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to snapshot frame.');
+    }
+  };
+
+  const handleToggleSelectFrame = (id: string, e: React.MouseEvent) => {
+    if (e.shiftKey && lastSelectedFrameIdRef.current) {
+      const idxA = frames.findIndex((f) => f.id === lastSelectedFrameIdRef.current);
+      const idxB = frames.findIndex((f) => f.id === id);
+
+      if (idxA !== -1 && idxB !== -1) {
+        const start = Math.min(idxA, idxB);
+        const end = Math.max(idxA, idxB);
+
+        setFrames((prev) =>
+          prev.map((f, i) => (i >= start && i <= end ? { ...f, selected: true } : f))
+        );
+        return;
+      }
+    }
+
+    lastSelectedFrameIdRef.current = id;
+    setFrames((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, selected: !f.selected } : f))
+    );
+  };
+
+  const handleSelectAll = () => setFrames((prev) => prev.map((f) => ({ ...f, selected: true })));
+  const handleDeselectAll = () => setFrames((prev) => prev.map((f) => ({ ...f, selected: false })));
+  const handleInvertSelection = () => setFrames((prev) => prev.map((f) => ({ ...f, selected: !f.selected })));
+
+  const selectedFrames = frames.filter((f) => f.selected);
+
+  return (
+    <div className="min-h-screen flex flex-col justify-between bg-[--bg-app] text-[--text-primary] transition-colors duration-150">
+      <Header
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onReset={handleReset}
+        hasVideo={!!metadata}
+      />
+
+      <main className="flex-1 w-full flex flex-col justify-center py-6 sm:py-8">
+        {!metadata ? (
+          /* STATE 1: RESTRAINED EMPTY DROPZONE SURFACE */
+          <Dropzone
+            onFileSelect={handleFileSelect}
+            onSelectSampleVideo={handleSelectSampleVideo}
+            isLoadingSample={isLoadingSample || isLoadingMetadata}
+          />
+        ) : (
+          /* STATE 2: 01 TRIM -> 02 METHOD -> PREVIEW -> EXTRACT -> 03 REVIEW -> 04 DOWNLOAD */
+          <div className="page-container">
+            <MetadataBar metadata={metadata} />
+
+            {/* 01 — TRIM VIDEO */}
+            <VideoPlayerScrubber
+              metadata={metadata}
+              options={options}
+              onChangeOptions={setOptions}
+              onSnapshotFrame={handleSnapshotSingleFrame}
+            />
+
+            {/* 02 — CHOOSE EXTRACTION */}
+            <ExtractionSettings
+              metadata={metadata}
+              options={options}
+              onChangeOptions={setOptions}
+              onStartExtraction={handleStartExtraction}
+              isExtracting={isExtracting}
+            />
+
+            {/* EXTRACTION PREVIEW STRIP */}
+            <ExtractionPreviewStrip
+              metadata={metadata}
+              options={options}
+            />
+
+            {isExtracting && (
+              <ProgressBar progress={progress} onCancel={handleCancelExtraction} />
+            )}
+
+            {/* 03 — FINAL REVIEW PLAYER & 04 — DOWNLOAD SECTION (Rendered after extraction) */}
+            {frames.length > 0 && (
+              <>
+                <FinalReviewPlayer
+                  frames={frames}
+                  videoName={metadata.name}
+                />
+
+                <DownloadSection
+                  frames={frames}
+                  videoName={metadata.name}
+                />
+
+                <FrameGrid
+                  frames={frames}
+                  onToggleSelectFrame={handleToggleSelectFrame}
+                  onSelectAll={handleSelectAll}
+                  onDeselectAll={handleDeselectAll}
+                  onInvertSelection={handleInvertSelection}
+                  onOpenLightbox={(frame) => setLightboxFrame(frame)}
+                  onOpenCompareModal={() => setIsCompareOpen(true)}
+                  onOpenGifExportModal={() => setIsGifExportOpen(true)}
+                  videoName={metadata.name}
+                />
+              </>
+            )}
+          </div>
+        )}
+      </main>
+
+      <LightboxModal
+        frame={lightboxFrame}
+        frames={frames}
+        onClose={() => setLightboxFrame(null)}
+        onSelectFrame={(frame) => setLightboxFrame(frame)}
+      />
+
+      {isCompareOpen && (
+        <CompareModal
+          selectedFrames={selectedFrames.length >= 2 ? selectedFrames : frames}
+          onClose={() => setIsCompareOpen(false)}
+        />
+      )}
+
+      {isGifExportOpen && (
+        <GifExportModal
+          selectedFrames={selectedFrames.length > 0 ? selectedFrames : frames}
+          videoName={metadata ? metadata.name : 'video'}
+          onClose={() => setIsGifExportOpen(false)}
+        />
+      )}
+
+      <Footer />
+    </div>
+  );
+};
+
+export default App;
