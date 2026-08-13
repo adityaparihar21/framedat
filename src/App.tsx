@@ -16,6 +16,7 @@ import { GifExportModal } from './components/GifExportModal';
 import { ContactSheetModal } from './components/ContactSheetModal';
 import { BackgroundRemover } from './components/BackgroundRemover';
 import { CinematicIntro } from './components/CinematicIntro';
+import { ToastContainer, type ToastMessage } from './components/Toast';
 import { Footer } from './components/Footer';
 
 import type { VideoMetadata, ExtractionOptions, FrameData, ExtractionProgress } from './types';
@@ -33,6 +34,17 @@ export const App: React.FC = () => {
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
   const [isLoadingSample, setIsLoadingLoadingSample] = useState(false);
   const [showIntro, setShowIntro] = useState<boolean>(true);
+
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const showToast = (text: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = `toast_${Date.now()}_${Math.random()}`;
+    setToasts((prev) => [...prev, { id, text, type }]);
+  };
+
+  const handleDismissToast = (id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
 
   const [options, setOptions] = useState<ExtractionOptions>({
     mode: 'all',
@@ -130,6 +142,7 @@ export const App: React.FC = () => {
       const meta = await detectVideoMetadata(file);
       setMetadata(meta);
       setOptions((prev) => ({ ...prev, startTime: 0, endTime: meta.duration }));
+      showToast(`Loaded ${meta.name} (${meta.width}×${meta.height} • ${meta.fps} FPS)`, 'success');
     } catch (err: any) {
       alert(err.message || 'Failed to parse video file.');
     } finally {
@@ -169,6 +182,8 @@ export const App: React.FC = () => {
       const analyzed = await analyzeSceneChanges(extracted);
       setFrames(analyzed);
 
+      showToast(`Extracted ${analyzed.length} frames losslessly`, 'success');
+
       confetti({
         particleCount: 50,
         spread: 60,
@@ -205,6 +220,7 @@ export const App: React.FC = () => {
       const result = await extractFrames(metadata, singleOptions);
       if (result.length > 0) {
         setFrames((prev) => [result[0], ...prev]);
+        showToast('Captured single frame snapshot', 'info');
       }
     } catch (err: any) {
       alert(err.message || 'Failed to snapshot frame.');
@@ -259,12 +275,14 @@ export const App: React.FC = () => {
           <BackgroundRemover
             initialImageBlob={bgRemoverInitialBlob}
             onBackToExtractor={() => setToolMode('extractor')}
+            onShowToast={showToast}
           />
         ) : !metadata ? (
           /* STATE 1: PERFECTLY CENTERED ELEGANT DROPZONE */
           <Dropzone
             onFileSelect={handleFileSelect}
             onSelectSampleVideo={handleSelectSampleVideo}
+            onOpenBackgroundRemover={() => setToolMode('bg_remover')}
             isLoadingSample={isLoadingSample || isLoadingMetadata}
           />
         ) : (
@@ -364,6 +382,8 @@ export const App: React.FC = () => {
           onClose={() => setIsContactSheetOpen(false)}
         />
       )}
+
+      <ToastContainer toasts={toasts} onDismiss={handleDismissToast} />
 
       <Footer />
     </div>

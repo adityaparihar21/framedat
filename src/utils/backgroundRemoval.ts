@@ -1,18 +1,40 @@
 /**
- * Local High-Precision Background Removal Engine for framedat
- * Performs instant client-side background removal & transparent PNG extraction.
+ * High-Precision Local Background Removal Engine for framedat.
+ * Includes Skin & Subject Tone Protection Shield to prevent erasing human faces, hands, and bodies
+ * even when background hues are similar to foreground tones.
  */
 
 export interface BackgroundRemovalOptions {
   keyColor: { r: number; g: number; b: number };
   threshold: number; // 0 to 100
   feather: number; // 0 to 20
+  protectSkinTones: boolean; // Protect human skin tones from removal
+  skinProtectionStrength: number; // 0 to 100
   invertMask: boolean;
   smoothing: boolean;
 }
 
 /**
- * Removes background from image Blob or URL and returns a Transparent PNG Blob
+ * Checks if a pixel RGB value falls within human skin tone color spectrum
+ * (YCrCb / RGB skin tone bounding envelope)
+ */
+export function isHumanSkinTone(r: number, g: number, b: number): boolean {
+  // Standard RGB skin tone heuristics
+  const rGDiff = r - g;
+  const isBasicSkin = r > 60 && g > 40 && b > 20 && (Math.max(r, g, b) - Math.min(r, g, b) > 15) && Math.abs(rGDiff) > 15 && r > g && r > b;
+  
+  // YCbCr color space transformation check
+  const y = 0.299 * r + 0.587 * g + 0.114 * b;
+  const cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
+  const cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
+
+  const isYCbCrSkin = cr >= 133 && cr <= 173 && cb >= 77 && cb <= 127 && y > 40;
+
+  return isBasicSkin || isYCbCrSkin;
+}
+
+/**
+ * Removes background from an image Blob or URL with Skin & Subject Protection Shielding
  */
 export async function removeBackground(
   imageSource: Blob | string,
@@ -37,18 +59,19 @@ export async function removeBackground(
   const imgData = ctx.getImageData(0, 0, width, height);
   const data = imgData.data;
 
-  const { keyColor, threshold, feather, invertMask } = options;
+  const { keyColor, threshold, feather, protectSkinTones, skinProtectionStrength, invertMask } = options;
 
-  // Convert 0-100 threshold to color distance (0 - 441)
+  // Max color distance threshold (0 - 441 in 3D RGB space)
   const maxDistance = (threshold / 100) * 441;
   const featherRange = feather * 4;
+  const skinShieldFactor = (skinProtectionStrength / 100);
 
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i];
     const g = data[i + 1];
     const b = data[i + 2];
 
-    // Euclidean color distance in RGB space
+    // Calculate Euclidean color distance to target background key color
     const distance = Math.sqrt(
       Math.pow(r - keyColor.r, 2) +
       Math.pow(g - keyColor.g, 2) +
@@ -57,11 +80,21 @@ export async function removeBackground(
 
     let alpha = 255;
 
+    // Check if background match
     if (distance < maxDistance) {
       if (featherRange > 0 && maxDistance - distance < featherRange) {
         alpha = Math.round(((maxDistance - distance) / featherRange) * 255);
       } else {
         alpha = 0;
+      }
+
+      // SKIN & SUBJECT PROTECTION SHIELD: Protect human skin tones from accidental deletion
+      if (protectSkinTones && alpha < 255) {
+        if (isHumanSkinTone(r, g, b)) {
+          // Restore alpha to preserve subject skin/face/hands
+          const restoreAmount = Math.round(255 * skinShieldFactor);
+          alpha = Math.max(alpha, restoreAmount);
+        }
       }
     }
 

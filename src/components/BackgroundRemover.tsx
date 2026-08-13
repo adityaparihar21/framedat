@@ -2,27 +2,32 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { BackgroundRemovalOptions } from '../utils/backgroundRemoval';
 import { removeBackground, autoDetectKeyColor } from '../utils/backgroundRemoval';
 import { saveAs } from 'file-saver';
-import { Upload, Download, Pipette, RefreshCw, Scissors, Sparkles } from 'lucide-react';
+import { Upload, Download, Pipette, RefreshCw, Scissors, Sparkles, Shield } from 'lucide-react';
 
 interface BackgroundRemoverProps {
   initialImageBlob?: Blob | null;
   onBackToExtractor?: () => void;
+  onShowToast?: (text: string, type?: 'success' | 'error' | 'info') => void;
 }
 
 export const BackgroundRemover: React.FC<BackgroundRemoverProps> = ({
   initialImageBlob,
   onBackToExtractor,
+  onShowToast,
 }) => {
   const [sourceBlob, setSourceBlob] = useState<Blob | null>(initialImageBlob || null);
   const [sourceUrl, setSourceUrl] = useState<string | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [resultBlob, setResultBlob] = useState<Blob | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [previewViewMode, setPreviewViewMode] = useState<'split' | 'transparent' | 'original'>('split');
 
   const [options, setOptions] = useState<BackgroundRemovalOptions>({
     keyColor: { r: 9, g: 11, b: 16 },
     threshold: 25,
     feather: 4,
+    protectSkinTones: true,
+    skinProtectionStrength: 85,
     invertMask: false,
     smoothing: true,
   });
@@ -66,7 +71,7 @@ export const BackgroundRemover: React.FC<BackgroundRemoverProps> = ({
       }
     };
 
-    const timer = setTimeout(process, 100);
+    const timer = setTimeout(process, 120);
     return () => {
       isSubscribed = false;
       clearTimeout(timer);
@@ -96,11 +101,18 @@ export const BackgroundRemover: React.FC<BackgroundRemoverProps> = ({
     const p = ctx.getImageData(x, y, 1, 1).data;
     setOptions((prev) => ({ ...prev, keyColor: { r: p[0], g: p[1], b: p[2] } }));
     setIsPipetteActive(false);
+
+    if (onShowToast) {
+      onShowToast(`Sampled background color RGB(${p[0]}, ${p[1]}, ${p[2]})`, 'info');
+    }
   };
 
   const handleDownload = () => {
     if (resultBlob) {
       saveAs(resultBlob, 'framedat_transparent_subject.png');
+      if (onShowToast) {
+        onShowToast('Transparent PNG downloaded successfully', 'success');
+      }
     }
   };
 
@@ -117,7 +129,7 @@ export const BackgroundRemover: React.FC<BackgroundRemoverProps> = ({
               Local Background Removal Studio
             </h2>
             <p className="text-xs text-[--text-secondary] font-mono">
-              Extract subjects with alpha channel transparency — 100% local canvas processing
+              Extract subjects with alpha transparency — 100% client-side canvas engine
             </p>
           </div>
         </div>
@@ -213,6 +225,42 @@ export const BackgroundRemover: React.FC<BackgroundRemoverProps> = ({
               </div>
             </div>
 
+            {/* SKIN & SUBJECT PROTECTION SHIELD (Prevents erasing faces/skin tones) */}
+            <div className="p-3 rounded bg-[--bg-surface-2]/40 border border-[--accent-blue-border]">
+              <div className="flex items-center justify-between mb-2">
+                <label className="flex items-center gap-1.5 font-semibold text-[--text-primary] cursor-pointer">
+                  <Shield className="w-3.5 h-3.5 text-[--accent-blue]" />
+                  <span>Subject & Skin Shield</span>
+                </label>
+                <input
+                  type="checkbox"
+                  checked={options.protectSkinTones}
+                  onChange={(e) => setOptions({ ...options, protectSkinTones: e.target.checked })}
+                  className="custom-checkbox"
+                />
+              </div>
+
+              {options.protectSkinTones && (
+                <div>
+                  <div className="flex items-center justify-between mb-1 text-[11px]">
+                    <span className="text-[--text-tertiary]">Skin Protection Strength</span>
+                    <span className="font-bold text-[--accent-blue]">{options.skinProtectionStrength}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="10"
+                    max="100"
+                    value={options.skinProtectionStrength}
+                    onChange={(e) => setOptions({ ...options, skinProtectionStrength: parseInt(e.target.value) || 50 })}
+                    className="w-full h-1.5 bg-[--bg-surface-3] rounded appearance-none cursor-pointer accent-[--accent-blue]"
+                  />
+                  <p className="text-[10px] text-[--text-tertiary] mt-1 font-sans">
+                    Shields human skin tones, faces, and hands from accidental removal when background hues are similar.
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* Sensitivity Threshold Slider */}
             <div>
               <div className="flex items-center justify-between mb-1">
@@ -271,53 +319,85 @@ export const BackgroundRemover: React.FC<BackgroundRemoverProps> = ({
             </div>
           </div>
 
-          {/* Dual Preview Canvas */}
+          {/* Dual Preview Workspace */}
           <div className="lg:col-span-8 flex flex-col gap-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Source Original Image */}
-              <div className="tool-surface p-3 flex flex-col">
-                <div className="text-[11px] font-mono text-[--text-tertiary] uppercase mb-2">
-                  Original Source {isPipetteActive && <span className="text-[--accent-blue] font-bold">(Click to pick color)</span>}
-                </div>
-                <div className={`relative aspect-square rounded bg-black flex items-center justify-center overflow-hidden border border-[--border-subtle] ${
-                  isPipetteActive ? 'cursor-crosshair ring-2 ring-[--accent-blue]' : ''
-                }`}>
-                  {sourceUrl && (
-                    <img
-                      ref={imageRef}
-                      src={sourceUrl}
-                      alt="Source"
-                      onClick={handleCanvasClick}
-                      className="w-full h-full object-contain select-none"
-                    />
-                  )}
-                </div>
+            {/* View Mode Switcher */}
+            <div className="flex items-center justify-between bg-[--bg-surface-2] p-1.5 rounded-lg border border-[--border-subtle]">
+              <div className="segmented-control text-xs">
+                <button
+                  onClick={() => setPreviewViewMode('split')}
+                  className={previewViewMode === 'split' ? 'active font-bold' : ''}
+                >
+                  Split Compare
+                </button>
+                <button
+                  onClick={() => setPreviewViewMode('transparent')}
+                  className={previewViewMode === 'transparent' ? 'active font-bold' : ''}
+                >
+                  Transparent Alpha
+                </button>
+                <button
+                  onClick={() => setPreviewViewMode('original')}
+                  className={previewViewMode === 'original' ? 'active font-bold' : ''}
+                >
+                  Original
+                </button>
               </div>
 
+              <span className="text-[10px] font-mono text-[--text-tertiary] hidden sm:inline">
+                {isProcessing ? 'Processing mask...' : 'Live Preview Ready'}
+              </span>
+            </div>
+
+            <div className={`grid gap-4 ${previewViewMode === 'split' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+              {/* Source Original Image */}
+              {(previewViewMode === 'split' || previewViewMode === 'original') && (
+                <div className="tool-surface p-3 flex flex-col">
+                  <div className="text-[11px] font-mono text-[--text-tertiary] uppercase mb-2">
+                    Original Source {isPipetteActive && <span className="text-[--accent-blue] font-bold">(Click to pick color)</span>}
+                  </div>
+                  <div className={`relative aspect-square rounded bg-black flex items-center justify-center overflow-hidden border border-[--border-subtle] ${
+                    isPipetteActive ? 'cursor-crosshair ring-2 ring-[--accent-blue]' : ''
+                  }`}>
+                    {sourceUrl && (
+                      <img
+                        ref={imageRef}
+                        src={sourceUrl}
+                        alt="Source"
+                        onClick={handleCanvasClick}
+                        className="w-full h-full object-contain select-none"
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Transparent Result Canvas */}
-              <div className="tool-surface p-3 flex flex-col">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-mono text-[--text-tertiary] uppercase">Transparent Alpha Output</span>
-                  <span className="text-[10px] font-mono text-[--accent-blue] flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" /> Alpha PNG
-                  </span>
+              {(previewViewMode === 'split' || previewViewMode === 'transparent') && (
+                <div className="tool-surface p-3 flex flex-col">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-mono text-[--text-tertiary] uppercase">Transparent Alpha Output</span>
+                    <span className="text-[10px] font-mono text-[--accent-blue] flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" /> Alpha PNG
+                    </span>
+                  </div>
+                  <div
+                    className="relative aspect-square rounded flex items-center justify-center overflow-hidden border border-[--border-subtle]"
+                    style={{
+                      backgroundImage: `linear-gradient(45deg, #181c28 25%, transparent 25%), linear-gradient(-45deg, #181c28 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #181c28 75%), linear-gradient(-45deg, transparent 75%, #181c28 75%)`,
+                      backgroundSize: '16px 16px',
+                      backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0px',
+                      backgroundColor: '#12151e',
+                    }}
+                  >
+                    {resultUrl ? (
+                      <img src={resultUrl} alt="Transparent Subject Result" className="w-full h-full object-contain select-none" />
+                    ) : (
+                      <span className="text-xs text-[--text-tertiary] font-mono">Processing mask...</span>
+                    )}
+                  </div>
                 </div>
-                <div
-                  className="relative aspect-square rounded flex items-center justify-center overflow-hidden border border-[--border-subtle]"
-                  style={{
-                    backgroundImage: `linear-gradient(45deg, #181c28 25%, transparent 25%), linear-gradient(-45deg, #181c28 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #181c28 75%), linear-gradient(-45deg, transparent 75%, #181c28 75%)`,
-                    backgroundSize: '16px 16px',
-                    backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0px',
-                    backgroundColor: '#12151e',
-                  }}
-                >
-                  {resultUrl ? (
-                    <img src={resultUrl} alt="Transparent Subject Result" className="w-full h-full object-contain select-none" />
-                  ) : (
-                    <span className="text-xs text-[--text-tertiary] font-mono">Processing mask...</span>
-                  )}
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
